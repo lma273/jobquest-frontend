@@ -36,18 +36,18 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <React.StrictMode>
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
-          <Auth0Provider
-              domain={import.meta.env.VITE_AUTH0_DOMAIN}
-              clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
-              authorizationParams={{
-                redirect_uri: window.location.origin, // http://localhost:5173
-                scope: "openid profile email",
-              }}
-              cacheLocation="localstorage"
-              useRefreshTokens
-          >
-            <RouterProvider router={router} />
-          </Auth0Provider>
+            <Auth0Provider
+                domain={import.meta.env.VITE_AUTH0_DOMAIN}
+                clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
+                authorizationParams={{
+                    redirect_uri: import.meta.env.VITE_AUTH0_CALLBACK_URL, 
+                    scope: "openid profile email",
+                }}
+                cacheLocation="localstorage"
+                useRefreshTokens
+            >
+                <RouterProvider router={router} />
+            </Auth0Provider>
         </PersistGate>
       </Provider>
     </React.StrictMode>
