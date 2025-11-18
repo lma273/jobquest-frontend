@@ -25,7 +25,7 @@ export function SSOLoginButton() {
             if (!idToken) throw new Error("Không lấy được ID Token");
 
             console.log("🔹 Gửi ID Token đến backend...");
-            const { data } = await api.post("/api/v1/auth/sso-login", { id_token: idToken });
+            const { data } = await api.post("/auth/sso-login", { id_token: idToken });
 
             localStorage.setItem("token", data.token);
             localStorage.setItem("role", data.role);

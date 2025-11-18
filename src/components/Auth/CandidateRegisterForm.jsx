@@ -29,7 +29,7 @@ const CandidateRegisterForm = () => {
 
     try {
       const skillsArray = skills.map((s) => s.value);
-      const res = await api.post("/api/v1/candidates/signup", {
+      const res = await api.post("/candidates/signup", {
         name, email, password, skills: skillsArray,
       });
 

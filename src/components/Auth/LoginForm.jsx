@@ -43,8 +43,8 @@ const LoginForm = ({ userType }) => {
 
     try {
       const apiEndpoint = isRecruiter
-          ? "/api/v1/recruiters/login"
-          : "/api/v1/candidates/login";
+          ? "/recruiters/login"
+          : "/candidates/login";
 
       const response = await api.post(apiEndpoint, loginObject);
 

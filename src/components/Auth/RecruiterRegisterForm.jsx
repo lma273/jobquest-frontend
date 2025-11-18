@@ -28,7 +28,7 @@ const RecruiterRegisterForm = () => {
 
     try {
       const payload = { name, email, password, company, location, jobIds: [] };
-      const res = await api.post("/api/v1/recruiters/signup", payload);
+      const res = await api.post("/recruiters/signup", payload);
 
       if (res.status === 201) {
         const { token, recruiter } = res.data || {};

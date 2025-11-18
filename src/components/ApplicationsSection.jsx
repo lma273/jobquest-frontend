@@ -21,8 +21,8 @@ const ApplicationsSection = () => {
     const fetchApplications = async () => {
       setIsLoading(true);
 
-      const applicationsResponse = await api.get("/api/v1/applications");
-      const jobsResponse = await api.get("/api/v1/jobs");
+      const applicationsResponse = await api.get("/applications");
+      const jobsResponse = await api.get("/jobs");
 
       const applicationsData = applicationsResponse.data;
       const jobsData = jobsResponse.data;
@@ -108,7 +108,7 @@ const ApplicationsSection = () => {
 
     try {
       const response = await api.post(
-        `/api/v1/applications/${item.id}`,
+        `/applications/${item.id}`,
         { status: "Accepted" }, //HANTTTT
         { headers: { "Content-Type": "application/json" } }
       );
@@ -135,7 +135,7 @@ const ApplicationsSection = () => {
 
     try {
       const response = await api.post(
-        `/api/v1/applications/${item.id}`,
+        `/applications/${item.id}`,
         { status: "Rejected" }, //HANTTTT
         { headers: { "Content-Type": "application/json" } }
       );
