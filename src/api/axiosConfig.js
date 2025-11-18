@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080", // tuỳ bạn
+  baseURL: import.meta.env.VITE_API_BASE_URL,
 });
 
 // Gắn token Bearer từ localStorage
