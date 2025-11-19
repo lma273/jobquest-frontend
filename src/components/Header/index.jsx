@@ -21,8 +21,8 @@ const Header = () => {
       setIsLoading(true);
 
       const apiEndpoint = isRecruiter
-        ? "/api/v1/recruiters/logout"
-        : "/api/v1/candidates/logout";
+        ? "/recruiters/logout"
+        : "/candidates/logout";
 
       const response = await api.post(apiEndpoint);
       setIsLoading(false);
