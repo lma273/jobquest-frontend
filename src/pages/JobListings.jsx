@@ -24,7 +24,7 @@ const JobListings = () => {
   useEffect(() => {
     const fetchJobs = async () => {
       setIsLoading(true);
-      const jobsResponse = await api.get("/api/v1/jobs");
+      const jobsResponse = await api.get("/jobs");
       setJobs(jobsResponse.data);
       setIsLoading(false);
     };
@@ -50,7 +50,7 @@ const JobListings = () => {
 
   const applyForJob = async (formData) => {
     try {
-      const applyResponse = await api.post("/api/v1/applications", formData);
+      const applyResponse = await api.post("/applications", formData);
 
       if (applyResponse.status === 201) {
         closeApplicationModal();
@@ -77,7 +77,7 @@ const JobListings = () => {
     setActionLoading(true);
 
     try {
-      const deleteResponse = await api.delete(`/api/v1/jobs/${job.id}`);
+      const deleteResponse = await api.delete(`/jobs/${job.id}`);
       const deleteOk = deleteResponse.status === 204 || deleteResponse.status === 200;
 
       if (deleteOk) {
@@ -91,7 +91,7 @@ const JobListings = () => {
         // Best-effort unlink from recruiter, ignore failures
         try {
           await api.post(
-              `/api/v1/recruiters/${userData.email}/removejob`,
+              `/recruiters/${userData.email}/removejob`,
               job.id
           );
         } catch (unlinkError) {
