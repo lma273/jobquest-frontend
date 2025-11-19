@@ -56,16 +56,16 @@ const PostJobForm = () => {
     setIsLoading(true);
 
     try {
-      const jobResponse = await api.post("/api/v1/jobs", formData);
+      const jobResponse = await api.post("/jobs", formData);
 
       if (jobResponse.status === 201) {
         const appendResponse = await api.post(
-          `/api/v1/recruiters/${userData?.email}/appendjob`,
+          `/recruiters/${userData?.email}/appendjob`,
           // jobResponse.data.id ⭐⭐⭐⭐
             { jobId: jobResponse.data.id } // ✅ Sửa ở đây
         );
         console.log("jobResponse", jobResponse.data);
-        console.log("appendjob URL:", `/api/v1/recruiters/${userData?.email}/appendjob`);
+        console.log("appendjob URL:", `/recruiters/${userData?.email}/appendjob`);
         console.log("body gửi:", { jobId: jobResponse.data.id });
 
         if (appendResponse.status === 200) {
