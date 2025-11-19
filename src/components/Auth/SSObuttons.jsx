@@ -79,7 +79,7 @@ export function SSOLinkButton({ remember = true, onLinked }) {
 
             const token = localStorage.getItem("token");
             await api.post(
-                "/api/v1/auth/sso-link",
+                "/auth/sso-link",
                 { id_token: idToken, remember },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
