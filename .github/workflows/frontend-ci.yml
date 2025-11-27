@@ -1,0 +1,32 @@
+name: Build & Push Frontend Image
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Setup gcloud
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Configure Docker
+      run: |
+        gcloud auth configure-docker asia-southeast1-docker.pkg.dev
+
+    - name: Build & Push Frontend
+      run: |
+        IMAGE=asia-southeast1-docker.pkg.dev/jobquest-ptud-hai/jobquest-repo/frontend:${GITHUB_SHA}
+        docker build -t $IMAGE .
+        docker push $IMAGE
