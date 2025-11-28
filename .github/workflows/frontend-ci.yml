@@ -27,6 +27,6 @@ jobs:
 
     - name: Build & Push Frontend
       run: |
-        IMAGE=asia-southeast1-docker.pkg.dev/jobquest-ptud-hai/jobquest-repo/frontend:${GITHUB_SHA}
+        IMAGE=asia-southeast1-docker.pkg.dev/jobquest-ptud-hai/jobquest-repo/frontend:v17
         docker build -t $IMAGE .
         docker push $IMAGE
