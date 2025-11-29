@@ -27,6 +27,18 @@ jobs:
 
     - name: Build & Push Frontend
       run: |
-        IMAGE=asia-southeast1-docker.pkg.dev/jobquest-ptud-hai/jobquest-repo/frontend:v17
+        IMAGE=asia-southeast1-docker.pkg.dev/jobquest-ptud-hai/jobquest-repo/frontend:${GITHUB_SHA}
         docker build -t $IMAGE .
         docker push $IMAGE
+
+    # Trigger k8s repo workflow
+    - name: Trigger k8s workflow
+      uses: peter-evans/repository-dispatch@v2
+      with:
+        token: ${{ secrets.PAT }}
+        repository: lma273/jobquest-k8s
+        event-type: update-deploy
+        client-payload: |
+          {
+          "frontend_tag": "${{ github.sha }}"
+          }
