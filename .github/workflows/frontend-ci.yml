@@ -1,5 +1,5 @@
 name: Build & Push Frontend Image
-# test hđong repo k8s-1
+# test hđong repo k8s-2
 on:
   push:
     branches:
