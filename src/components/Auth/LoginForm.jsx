@@ -97,28 +97,30 @@ const LoginForm = ({ userType }) => {
           />
         </div>
 
-        <div className="flex justify-between gap-1 items-center">
+        <div className="relative">
           <input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full py-2 px-4 text-lg rounded-lg text-black/80"
+              className="w-full py-2 px-4 pr-12 text-lg rounded-lg text-black/80"
               required
           />
 
-          <EyeIcon
-              height="1.7em"
-              width="1.7em"
-              className={`cursor-pointer ${showPassword && "hidden"}`}
-              onClick={() => setShowPassword(true)}
-          />
-          <EyeCloseIcon
-              height="1.7em"
-              width="1.7em"
-              className={`cursor-pointer ${!showPassword && "hidden"}`}
-              onClick={() => setShowPassword(false)}
-          />
+          <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10
+               w-10 h-10 p-0 m-0 flex items-center justify-center
+               text-slate-400 hover:text-slate-600"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? (
+                <EyeCloseIcon className="block" width="1.7em" height="1.7em" />
+            ) : (
+                <EyeIcon className="block" width="1.7em" height="1.7em" />
+            )}
+          </button>
         </div>
 
         <button
