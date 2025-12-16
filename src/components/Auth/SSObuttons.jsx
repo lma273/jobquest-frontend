@@ -57,7 +57,7 @@ export function SSOLoginButton() {
         <button
             type="button"
             onClick={onClick}
-            className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
+            className="py-2 px-4 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-md transition-colors underline underline-offset-4"
         >
             Đăng nhập bằng SSO (Auth0)
         </button>
