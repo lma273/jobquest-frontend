@@ -43,8 +43,8 @@ const LoginForm = ({ userType }) => {
 
     try {
       const apiEndpoint = isRecruiter
-          ? "/recruiters/login"
-          : "/candidates/login";
+          ? "/api/v1/recruiters/login"
+          : "/api/v1/candidates/login";
 
       const response = await api.post(apiEndpoint, loginObject);
 
@@ -124,7 +124,7 @@ const LoginForm = ({ userType }) => {
         <button
             type="submit"
             disabled={isLoading}
-            className={`py-2 px-4 my-10 bg-green-500 hover:opacity-70 rounded-lg text-white text-lg font-semibold transition-opacity ${
+            className={`py-2 px-4 mt-6 bg-green-500 hover:opacity-70 rounded-lg text-white text-lg font-semibold transition-opacity ${
                 isLoading && "opacity-30 hover:opacity-40"
             }`}
         >
@@ -133,6 +133,10 @@ const LoginForm = ({ userType }) => {
 
         {/* 🔴 Hiển thị lỗi nếu có */}
         <p className="text-red-500 text-center text-lg font-black">{error}</p>
+
+        <div className="mt-6 flex justify-center">
+          <SSOLoginButton />
+        </div>
 
         <p className="text-secondary text-center">
           <Link
@@ -144,9 +148,7 @@ const LoginForm = ({ userType }) => {
         </p>
 
         {/* 🟢 Nút đăng nhập bằng SSO (Auth0) */}
-        <div className="mt-6 flex justify-center">
-          <SSOLoginButton />
-        </div>
+
       </form>
   );
 };
@@ -156,5 +158,4 @@ LoginForm.propTypes = {
 };
 
 export default LoginForm;
-
 
