@@ -23,6 +23,11 @@ jobs:
       uses: google-github-actions/setup-gcloud@v2
       with:
         project_id: jobquest-ptud-hai-481413
+    
+    - name: Debug gcloud auth
+      run: |
+        gcloud auth list
+        gcloud config list
 
     - name: Configure Docker
       run: |
