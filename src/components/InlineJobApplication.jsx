@@ -1,128 +1,211 @@
-// src/components/InlineJobApplication.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
+import Select from "react-select";
+import Creatable from "react-select/creatable";
+import { skillOptions, qualificationOptions } from "../data/constants";
+
+// Custom Style cho React-Select để hợp với Dark Mode
+const customSelectStyles = {
+  control: (base) => ({
+    ...base,
+    backgroundColor: "#1e293b", // slate-800
+    borderColor: "#475569", // slate-600
+    color: "white",
+    padding: "2px",
+    borderRadius: "0.5rem",
+  }),
+  menu: (base) => ({
+    ...base,
+    backgroundColor: "#1e293b",
+    zIndex: 9999,
+  }),
+  option: (base, state) => ({
+    ...base,
+    backgroundColor: state.isFocused ? "#334155" : "#1e293b",
+    color: "white",
+  }),
+  singleValue: (base) => ({ ...base, color: "white" }),
+  multiValue: (base) => ({ ...base, backgroundColor: "#334155" }),
+  multiValueLabel: (base) => ({ ...base, color: "white" }),
+  multiValueRemove: (base) => ({ ...base, color: "white", ':hover': { backgroundColor: '#ef4444' } }),
+  input: (base) => ({ ...base, color: "white" }),
+};
 
 const InlineJobApplication = ({ job, onSubmit, onCancel }) => {
-  const user = useSelector((state) => state.auth.userData);
-  const [formData, setFormData] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
+  const userData = useSelector((state) => state.auth.userData);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // --- LOGIC STATE GIỮ NGUYÊN TỪ CODE CŨ ---
+  const [applicationForm, setApplicationForm] = useState({
+    jobId: "",
+    name: "",
+    qualification: "",
+    skills: [],
+    email: "",
     phone: "",
-    cvLink: user?.cvLink || "", // Nếu có sẵn link CV
-    coverLetter: "",
+    resumeLink: "",
   });
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  useEffect(() => {
+    setApplicationForm((prev) => ({
+      ...prev,
+      name: userData?.name || "",
+      email: userData?.email || "",
+      // Map skills từ string sang object {value, label} cho react-select
+      skills: userData?.skills?.map((item) => ({ value: item, label: item })) || [],
+    }));
+  }, [userData]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Gửi dữ liệu kèm jobId
-    onSubmit({ ...formData, jobId: job.id || job._id });
+    setIsLoading(true);
+
+    // Chuẩn hóa dữ liệu trước khi gửi (Logic cũ)
+    const updatedForm = {
+      ...applicationForm,
+      jobId: job?.id || job?._id,
+      qualification: applicationForm.qualification?.value || "",
+      skills: applicationForm.skills.map((item) => item.value), // Lấy value từ select
+      status: "Pending",
+    };
+
+    console.log("Submitting:", updatedForm);
+    
+    // Gọi hàm từ parent (JobListings)
+    await onSubmit(updatedForm);
+    setIsLoading(false);
   };
 
   return (
-    <div className="bg-gray-800 border border-green-600 rounded-xl p-6 mt-4 shadow-inner animate-fade-in-down">
-      <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-        <h3 className="text-lg font-bold text-green-400">
-          📝 Ứng tuyển: {job.position}
-        </h3>
+    <div className="bg-slate-800 border border-green-600/50 rounded-xl p-6 mt-4 shadow-2xl animate-fade-in-down">
+      {/* Header Form */}
+      <div className="flex justify-between items-start mb-6 border-b border-gray-700 pb-4">
+        <div>
+          <h3 className="text-xl font-bold text-green-400">
+            🚀 Ứng tuyển: {job?.position}
+          </h3>
+          <p className="text-sm text-gray-400 mt-1">
+            {job?.company} • {job?.location} • {job?.experience} Exp required
+          </p>
+        </div>
         <button 
           onClick={onCancel}
-          className="text-gray-400 hover:text-white"
+          className="text-gray-400 hover:text-white bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded transition-colors text-sm"
         >
           ✕ Đóng
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Form Content */}
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        {/* CỘT TRÁI */}
+        <div className="space-y-4">
           {/* Name */}
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Họ tên</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Name</label>
             <input
               type="text"
-              name="name"
-              required
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white focus:border-green-500 focus:outline-none"
-              placeholder="Nguyen Van A"
+              value={applicationForm.name}
+              readOnly
+              className="w-full bg-slate-900/50 border border-slate-600 rounded-lg p-3 text-gray-400 cursor-not-allowed"
             />
           </div>
 
           {/* Email */}
           <div>
-            <label className="block text-sm text-gray-300 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
             <input
               type="email"
-              name="email"
+              value={applicationForm.email}
+              readOnly
+              className="w-full bg-slate-900/50 border border-slate-600 rounded-lg p-3 text-gray-400 cursor-not-allowed"
+            />
+          </div>
+
+          {/* Phone */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Phone <span className="text-red-500">*</span></label>
+            <input
+              type="tel"
+              value={applicationForm.phone}
+              onChange={(e) => setApplicationForm({ ...applicationForm, phone: e.target.value })}
+              placeholder="(e.g. +84 909 123 ***)"
               required
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white focus:border-green-500 focus:outline-none"
-              placeholder="email@example.com"
+              className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none placeholder-gray-500"
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Phone */}
+        {/* CỘT PHẢI */}
+        <div className="space-y-4">
+          {/* Skills (React Select) */}
           <div>
-             <label className="block text-sm text-gray-300 mb-1">Số điện thoại</label>
-             <input
-               type="text"
-               name="phone"
-               required
-               value={formData.phone}
-               onChange={handleChange}
-               className="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white focus:border-green-500 focus:outline-none"
-               placeholder="0909xxxxxx"
-             />
+            <label className="block text-sm font-medium text-gray-300 mb-1">Skills</label>
+            <Creatable
+              options={skillOptions}
+              isMulti
+              value={applicationForm.skills}
+              onChange={(selected) => setApplicationForm({ ...applicationForm, skills: selected })}
+              styles={customSelectStyles}
+              placeholder="Select or type skills..."
+              className="text-sm"
+            />
           </div>
-          {/* CV Link */}
+
+          {/* Qualification (React Select) */}
           <div>
-             <label className="block text-sm text-gray-300 mb-1">Link CV (Google Drive/PDF)</label>
-             <input
-               type="text"
-               name="cvLink"
-               required
-               value={formData.cvLink}
-               onChange={handleChange}
-               className="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white focus:border-green-500 focus:outline-none"
-               placeholder="https://drive.google.com/..."
-             />
+            <label className="block text-sm font-medium text-gray-300 mb-1">Qualification</label>
+            <Select
+              options={qualificationOptions}
+              value={applicationForm.qualification}
+              onChange={(selected) => setApplicationForm({ ...applicationForm, qualification: selected })}
+              styles={customSelectStyles}
+              placeholder="Select qualification..."
+              className="text-sm"
+            />
+          </div>
+
+          {/* Resume Link */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Resume Link (PDF/Drive) <span className="text-red-500">*</span></label>
+            <input
+              type="url"
+              value={applicationForm.resumeLink}
+              onChange={(e) => setApplicationForm({ ...applicationForm, resumeLink: e.target.value })}
+              placeholder="https://drive.google.com/..."
+              required
+              className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none placeholder-gray-500"
+            />
           </div>
         </div>
 
-        {/* Cover Letter */}
-        <div>
-          <label className="block text-sm text-gray-300 mb-1">Thư giới thiệu (Cover Letter)</label>
-          <textarea
-            name="coverLetter"
-            rows="3"
-            value={formData.coverLetter}
-            onChange={handleChange}
-            className="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white focus:border-green-500 focus:outline-none"
-            placeholder="Tại sao bạn thích công việc này?"
-          ></textarea>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-3 pt-2">
+        {/* Action Buttons (Full width) */}
+        <div className="md:col-span-2 flex justify-end gap-3 pt-4 border-t border-gray-700 mt-2">
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded text-white text-sm font-medium transition"
+            className="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-white font-medium transition-colors"
           >
-            Hủy bỏ
+            Cancel
           </button>
+          
           <button
             type="submit"
-            className="px-6 py-2 bg-green-600 hover:bg-green-700 rounded text-white text-sm font-bold shadow-lg transition transform hover:scale-105"
+            disabled={isLoading}
+            className={`px-8 py-2.5 bg-green-600 hover:bg-green-700 rounded-lg text-white font-bold shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center gap-2 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            🚀 Gửi hồ sơ ngay
+            {isLoading ? (
+              <>
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+              </>
+            ) : (
+              "Submit Application"
+            )}
           </button>
         </div>
       </form>
