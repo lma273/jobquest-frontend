@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 
+import NotificationModal from "../modals/NotificationModal";
 import Logo from "../Logo";
 import api from "../../api/axiosConfig";
 import { logout as storeLogout } from "../../store/authSlice";
