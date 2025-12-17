@@ -9,6 +9,20 @@ import { logout as storeLogout } from "../../store/authSlice";
 const Header = () => {
   const navigate = useNavigate();
 
+  const [openNoti, setOpenNoti] = useState(false);
+
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: "Welcome!", body: "Chào mừng bạn đến JobQuest 🎉", read: false },
+    { id: 2, title: "Update", body: "Bạn có 1 thông báo mới.", read: false },
+  ]);
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const markAllAsReadAndClose = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setOpenNoti(false);
+  };
+
   const dispatch = useDispatch();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const isRecruiter = useSelector((state) => state.auth.isRecruiter);
@@ -69,17 +83,34 @@ const Header = () => {
         )}
 
         {isAuthenticated ? (
-          <div className="flex justify-around items-center gap-x-6 2xl:gap-x-8">
-            <button
-              onClick={handleLogout}
-              disabled={isLoading}
-              className={`py-3 px-8 bg-orange-600 hover:opacity-70 rounded-lg text-white text-base font-semibold transition-opacity ${
-                isLoading && "opacity-30 hover:opacity-40"
-              }`}
-            >
-              Logout
-            </button>
-          </div>
+            <div className="flex justify-around items-center gap-x-6 2xl:gap-x-8">
+              {/* 🔔 Alert - nằm bên trái Logout */}
+              <button
+                  type="button"
+                  onClick={() => setOpenNoti(true)}
+                  className="relative w-11 h-11 rounded-full bg-slate-700 hover:bg-slate-600 text-white flex items-center justify-center"
+                  title="Thông báo"
+              >
+                🔔
+                {!!unreadCount && (
+                    <span className="absolute -top-1 -right-1 text-xs bg-red-500 text-white rounded-full px-1.5">
+    {unreadCount}
+  </span>
+                )}
+
+              </button>
+
+              <button
+                  onClick={handleLogout}
+                  disabled={isLoading}
+                  className={`py-3 px-8 bg-orange-600 hover:opacity-70 rounded-lg text-white text-base font-semibold transition-opacity ${
+                      isLoading && "opacity-30 hover:opacity-40"
+                  }`}
+              >
+                Logout
+              </button>
+
+            </div>
         ) : (
           <div className="flex justify-between gap-4">
             <button
@@ -99,6 +130,13 @@ const Header = () => {
         )}
       </nav>
     </header>
+
+  <NotificationModal
+      open={openNoti}
+      onClose={markAllAsReadAndClose}
+      notifications={notifications}
+  />
+</>
   );
 };
 
