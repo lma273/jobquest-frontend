@@ -46,8 +46,17 @@ const JobsList = ({
     <div className="text-white">
       <h1 className="text-2xl font-bold mb-4">Available Jobs</h1>
       
-      {/* ... (Phần nút Post Job giữ nguyên) ... */}
-
+      {isRecruiter && (
+        <div className="my-6">
+          <button
+            onClick={() => navigate("/postjob")}
+            className="py-2 px-6 bg-green-600 hover:bg-green-700 rounded-lg text-white font-bold transition-all shadow-md flex items-center gap-2"
+          >
+            <span className="text-xl">+</span> Post New Job
+          </button>
+        </div>
+      )}
+      
       <div className="flex flex-col gap-4 pb-20">
         {jobs.length > 0 ? (
           jobs.map((job) => {
