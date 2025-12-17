@@ -1,4 +1,4 @@
-Chatbot Modal Styling
+/* Chatbot Modal Styling
 
 .chatbot-overlay {
   position: fixed;
@@ -44,7 +44,7 @@ Chatbot Modal Styling
   }
 }
 
-/* Header */
+Header */
 .chatbot-header {
   display: flex;
   justify-content: space-between;
