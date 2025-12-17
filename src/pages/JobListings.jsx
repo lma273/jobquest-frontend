@@ -15,8 +15,8 @@ const JobListings = () => {
 
   const [isJobApplicationModalOpen, setIsJobApplicationModalOpen] = useState(false);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  
   const [confirmationMessage, setConfirmationMessage] = useState("");
-
   const [jobs, setJobs] = useState([]);
   
   // STATE MỚI: Dùng để lưu job đang được chọn cho AI phân tích
@@ -52,6 +52,7 @@ const JobListings = () => {
   // --- LOGIC APPLY (GIỮ NGUYÊN) ---
   const applyForJob = async (formData) => {
     try {
+      // Lưu ý: selectedJob ở đây là job đang được chọn để apply
       const applyResponse = await api.post("/applications", formData);
 
       if (applyResponse.status === 201) {
@@ -64,20 +65,25 @@ const JobListings = () => {
     } catch (error) {
       console.log(error);
       closeApplicationModal();
-      setConfirmationMessage("Some error occurred while applying for the job. Kindly try again!");
+      setConfirmationMessage(
+        "Some error occurred while applying for the job. Kindly try again!"
+      );
       openConfirmationModal();
     }
   };
 
-  // --- LOGIC DELETE (GIỮ NGUYÊN) ---
+  // --- LOGIC DELETE (GIỮ NGUYÊN & CẬP NHẬT AI STATE) ---
   const deleteJob = async (job) => {
     setActionLoading(true);
+
     try {
       const deleteResponse = await api.delete(`/jobs/${job.id}`);
       const deleteOk = deleteResponse.status === 204 || deleteResponse.status === 200;
 
       if (deleteOk) {
+        // Cập nhật lại danh sách job
         setJobs(jobs.filter((item) => item.id !== job.id));
+        
         setConfirmationMessage(
           `Successfully deleted the job: ${job?.position} at ${job?.company}`
         );
@@ -85,22 +91,30 @@ const JobListings = () => {
 
         // Xóa khỏi danh sách job của recruiter
         try {
-          await api.post(`/recruiters/${userData.email}/removejob`, job.id);
+          await api.post(
+            `/recruiters/${userData.email}/removejob`,
+            job.id
+          );
         } catch (unlinkError) {
           console.log(unlinkError);
         }
-        
-        // Nếu xóa job đang chọn thì reset AI panel
+
+        // QUAN TRỌNG: Nếu xóa đúng cái job đang hiện trên AI Panel thì reset AI về null
         if (selectedJob?.id === job.id) {
-          setSelectedJob(null);
+            setSelectedJob(null);
         }
+
       } else {
-        setConfirmationMessage("Some error occurred while deleting the job.");
+        setConfirmationMessage(
+          "Some error occurred while deleting the job. Kindly try again!"
+        );
         openConfirmationModal();
       }
     } catch (error) {
       console.log(error);
-      setConfirmationMessage("Some error occurred while deleting the job.");
+      setConfirmationMessage(
+        "Some error occurred while deleting the job. Kindly try again!"
+      );
       openConfirmationModal();
     } finally {
       setActionLoading(false);
@@ -108,7 +122,7 @@ const JobListings = () => {
   };
 
   return (
-    // THAY ĐỔI LAYOUT: Dùng h-screen và flex để chia cột
+    // THAY ĐỔI LAYOUT: Dùng h-screen và flex để chia cột, background tối
     <div className="pt-24 px-4 lg:px-6 h-screen overflow-hidden flex flex-col bg-gray-900">
       
       {isLoading ? (
@@ -118,20 +132,19 @@ const JobListings = () => {
       ) : (
         <div className="flex flex-1 gap-6 h-full pb-4">
           
-          {/* CỘT TRÁI: DANH SÁCH JOB (Scroll được) */}
+          {/* CỘT TRÁI: DANH SÁCH JOB (Scrollable) */}
           <div className="flex-1 h-full overflow-y-auto pr-2 custom-scrollbar">
             <JobsList
               actionLoading={actionLoading}
               jobs={jobs}
               onApply={openApplicationModal}
               onDelete={deleteJob}
-              setSelectedJob={setSelectedJob} // Truyền hàm này xuống
-              activeJobId={selectedJob?.id || selectedJob?._id} // Để highlight
+              setSelectedJob={setSelectedJob} // Truyền hàm này xuống để click thẻ -> chạy AI
+              activeJobId={selectedJob?.id || selectedJob?._id} // Để highlight thẻ đang chọn
             />
           </div>
 
-          {/* CỘT PHẢI: AI COPILOT (Cố định, to đẹp) */}
-          {/* Ẩn trên mobile, hiện trên màn hình lớn */}
+          {/* CỘT PHẢI: AI COPILOT (Cố định, ẩn trên mobile) */}
           <div className="hidden lg:block w-[400px] xl:w-[450px] h-full transition-all duration-500 ease-in-out">
              <div className="h-full rounded-2xl overflow-hidden border border-gray-700 shadow-2xl bg-gray-800">
                 <AICopilot selectedJob={selectedJob} />
@@ -141,7 +154,7 @@ const JobListings = () => {
         </div>
       )}
 
-      {/* MODALS GIỮ NGUYÊN */}
+      {/* CÁC MODAL GIỮ NGUYÊN */}
       <JobApplication
         isOpen={isJobApplicationModalOpen}
         onClose={closeApplicationModal}

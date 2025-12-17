@@ -7,24 +7,26 @@ const AICopilot = ({ selectedJob }) => {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef(null);
   
-  // Lấy thông tin user từ Redux để AI biết profile người dùng
+  // Lấy thông tin user (nếu có) để AI biết profile
   const userData = useSelector((state) => state.auth.userData) || {};
-  // Giả lập CV text nếu user chưa có field này trong DB
-  const userCV = userData.cvText || "Ứng viên này chưa cập nhật nội dung CV chi tiết.";
+  
+  // Giả lập CV text nếu trong DB chưa có. 
+  // Sau này bạn thay bằng userData.cvText thật
+  const userCV = "Tôi là lập trình viên ReactJS, biết TailwindCSS, Redux. Kinh nghiệm 1 năm làm Frontend.";
 
-  // Mỗi khi chọn Job mới, reset khung chat
+  // Mỗi khi người dùng chọn Job mới bên trái -> AI Reset và Chào
   useEffect(() => {
     if (selectedJob) {
       setMessages([
         { 
           role: "system", 
-          content: `👋 Chào bạn! Tôi đã đọc JD của vị trí **${selectedJob.position}** tại **${selectedJob.company}**. Bạn muốn tôi tư vấn gì không?` 
+          content: `👋 Chào bạn! Tôi đang xem JD vị trí **${selectedJob.position}** tại **${selectedJob.company}**. Bạn muốn tôi phân tích gì không?` 
         }
       ]);
     }
   }, [selectedJob]);
 
-  // Tự động cuộn xuống tin nhắn mới nhất
+  // Tự động cuộn xuống tin nhắn mới
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -42,8 +44,7 @@ const AICopilot = ({ selectedJob }) => {
     setMessages((prev) => [...prev, { role: "user", content: userQuestion }]);
 
     try {
-      // 2. Gọi API Python Backend (Cổng 8000)
-      // Lưu ý: Đảm bảo bạn đang chạy 'uvicorn api:app --reload' ở backend
+      // 2. Gọi API Backend (Giả sử chạy ở cổng 8000 như bạn đã setup backend Python)
       const payload = {
         cv_text: userCV,
         job_context: `Title: ${selectedJob.position}. Company: ${selectedJob.company}. Location: ${selectedJob.location}. Skills: ${selectedJob.skills?.join(', ')}`,
@@ -51,6 +52,7 @@ const AICopilot = ({ selectedJob }) => {
         mode: "candidate"
       };
 
+      // Gọi API (Dùng fetch hoặc axios đều được)
       const response = await fetch("http://127.0.0.1:8000/consult", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -64,7 +66,7 @@ const AICopilot = ({ selectedJob }) => {
       
     } catch (error) {
       console.error(error);
-      setMessages((prev) => [...prev, { role: "assistant", content: "⚠️ Lỗi: Không kết nối được với AI Server. Hãy kiểm tra Backend (Port 8000)." }]);
+      setMessages((prev) => [...prev, { role: "assistant", content: "⚠️ Lỗi: Không kết nối được với AI Server (Port 8000)." }]);
     } finally {
       setIsLoading(false);
     }
@@ -80,7 +82,7 @@ const AICopilot = ({ selectedJob }) => {
     );
   }
 
-  // --- GIAO DIỆN CHAT ---
+  // --- GIAO DIỆN CHAT (SIDEBAR) ---
   return (
     <div className="flex flex-col h-full bg-white border-l border-gray-200 shadow-2xl">
       {/* Header */}
@@ -111,16 +113,13 @@ const AICopilot = ({ selectedJob }) => {
         ))}
         {isLoading && (
           <div className="flex items-center gap-2 text-gray-500 text-sm ml-2 animate-pulse">
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-75"></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-150"></div>
             AI đang suy nghĩ...
           </div>
         )}
         <div ref={scrollRef} />
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions (3 nút bấm thần thánh) */}
       <div className="p-3 bg-white border-t border-gray-200 grid grid-cols-3 gap-2">
         <button 
           onClick={() => handleConsult("why")} disabled={isLoading}
