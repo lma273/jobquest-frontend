@@ -4,7 +4,7 @@ import Select from "react-select";
 import Creatable from "react-select/creatable";
 import { skillOptions, qualificationOptions } from "../data/constants";
 
-// Custom Style cho React-Select (Dark Mode)
+// Custom Style cho React-Select để hợp với Dark Mode
 const customSelectStyles = {
   control: (base) => ({
     ...base,
@@ -35,79 +35,57 @@ const InlineJobApplication = ({ job, onSubmit, onCancel }) => {
   const userData = useSelector((state) => state.auth.userData);
   const [isLoading, setIsLoading] = useState(false);
 
-  // State cho các trường text
+  // --- LOGIC STATE GIỮ NGUYÊN TỪ CODE CŨ ---
   const [applicationForm, setApplicationForm] = useState({
+    jobId: "",
     name: "",
+    qualification: "",
+    skills: [],
     email: "",
     phone: "",
-    qualification: null,
-    skills: [],
+    resumeLink: "",
   });
-
-  // State riêng cho File
-  const [resumeFile, setResumeFile] = useState(null);
 
   useEffect(() => {
     setApplicationForm((prev) => ({
       ...prev,
       name: userData?.name || "",
       email: userData?.email || "",
+      // Map skills từ string sang object {value, label} cho react-select
       skills: userData?.skills?.map((item) => ({ value: item, label: item })) || [],
     }));
   }, [userData]);
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setResumeFile(file);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // QUAN TRỌNG: Dùng FormData để gửi File
-    const formData = new FormData();
+    // Chuẩn hóa dữ liệu trước khi gửi (Logic cũ)
+    const updatedForm = {
+      ...applicationForm,
+      jobId: job?.id || job?._id,
+      qualification: applicationForm.qualification?.value || "",
+      skills: applicationForm.skills.map((item) => item.value), // Lấy value từ select
+      status: "Pending",
+    };
+
+    console.log("Submitting:", updatedForm);
     
-    // Append các trường text
-    formData.append("jobId", job?.id || job?._id);
-    formData.append("userId", userData?._id || userData?.id || "");
-    formData.append("name", applicationForm.name);
-    formData.append("email", applicationForm.email);
-    formData.append("phone", applicationForm.phone);
-    formData.append("qualification", applicationForm.qualification?.value || "");
-    formData.append("status", "Pending");
-
-    // Append Skills (Lưu ý: tùy backend mà cách gửi mảng có thể khác nhau)
-    // Cách 1: Gửi lặp lại key 'skills' (Phổ biến)
-    applicationForm.skills.forEach(skill => {
-        formData.append("skills", skill.value);
-    });
-    // Cách 2: Nếu backend cần JSON string thì dùng dòng dưới:
-    // formData.append("skills", JSON.stringify(applicationForm.skills.map(s => s.value)));
-
-    // Append File
-    if (resumeFile) {
-      formData.append("resume", resumeFile);
-    }
-
-    // Gọi hàm submit từ parent (JobListings)
-    // Axios sẽ tự động nhận diện FormData và set header 'multipart/form-data'
-    await onSubmit(formData);
+    // Gọi hàm từ parent (JobListings)
+    await onSubmit(updatedForm);
     setIsLoading(false);
   };
 
   return (
     <div className="bg-slate-800 border border-green-600/50 rounded-xl p-6 mt-4 shadow-2xl animate-fade-in-down">
-      {/* Header */}
+      {/* Header Form */}
       <div className="flex justify-between items-start mb-6 border-b border-gray-700 pb-4">
         <div>
           <h3 className="text-xl font-bold text-green-400">
             🚀 Ứng tuyển: {job?.position}
           </h3>
           <p className="text-sm text-gray-400 mt-1">
-            {job?.company} • {job?.location}
+            {job?.company} • {job?.location} • {job?.experience} Exp required
           </p>
         </div>
         <button 
@@ -123,8 +101,9 @@ const InlineJobApplication = ({ job, onSubmit, onCancel }) => {
         
         {/* CỘT TRÁI */}
         <div className="space-y-4">
+          {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Họ tên</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Name</label>
             <input
               type="text"
               value={applicationForm.name}
@@ -133,6 +112,7 @@ const InlineJobApplication = ({ job, onSubmit, onCancel }) => {
             />
           </div>
 
+          {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
             <input
@@ -143,84 +123,89 @@ const InlineJobApplication = ({ job, onSubmit, onCancel }) => {
             />
           </div>
 
+          {/* Phone */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Số điện thoại <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Phone <span className="text-red-500">*</span></label>
             <input
               type="tel"
               value={applicationForm.phone}
               onChange={(e) => setApplicationForm({ ...applicationForm, phone: e.target.value })}
-              placeholder="Nhập số điện thoại..."
+              placeholder="(e.g. +84 909 123 ***)"
               required
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none"
+              className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none placeholder-gray-500"
             />
           </div>
         </div>
 
         {/* CỘT PHẢI */}
         <div className="space-y-4">
+          {/* Skills (React Select) */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Kỹ năng (Skills)</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Skills</label>
             <Creatable
               options={skillOptions}
               isMulti
               value={applicationForm.skills}
               onChange={(selected) => setApplicationForm({ ...applicationForm, skills: selected })}
               styles={customSelectStyles}
-              placeholder="Chọn hoặc nhập kỹ năng..."
+              placeholder="Select or type skills..."
               className="text-sm"
             />
           </div>
 
+          {/* Qualification (React Select) */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Trình độ (Qualification)</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Qualification</label>
             <Select
               options={qualificationOptions}
               value={applicationForm.qualification}
               onChange={(selected) => setApplicationForm({ ...applicationForm, qualification: selected })}
               styles={customSelectStyles}
-              placeholder="Chọn trình độ..."
+              placeholder="Select qualification..."
               className="text-sm"
             />
           </div>
 
-          {/* UPLOAD FILE PDF */}
+          {/* Resume Link */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              Upload CV (PDF) <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Resume Link (PDF/Drive) <span className="text-red-500">*</span></label>
             <input
-              type="file"
-              accept=".pdf"
-              onChange={handleFileChange}
+              type="url"
+              value={applicationForm.resumeLink}
+              onChange={(e) => setApplicationForm({ ...applicationForm, resumeLink: e.target.value })}
+              placeholder="https://drive.google.com/..."
               required
-              className="w-full text-sm text-gray-400
-                file:mr-4 file:py-2.5 file:px-4
-                file:rounded-lg file:border-0
-                file:text-sm file:font-semibold
-                file:bg-slate-700 file:text-white
-                file:cursor-pointer hover:file:bg-slate-600
-                border border-slate-600 rounded-lg cursor-pointer bg-slate-900 focus:outline-none"
+              className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none placeholder-gray-500"
             />
-            <p className="text-xs text-gray-500 mt-1">Chỉ chấp nhận file định dạng .pdf</p>
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons (Full width) */}
         <div className="md:col-span-2 flex justify-end gap-3 pt-4 border-t border-gray-700 mt-2">
           <button
             type="button"
             onClick={onCancel}
             className="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-white font-medium transition-colors"
           >
-            Hủy bỏ
+            Cancel
           </button>
           
           <button
             type="submit"
             disabled={isLoading}
-            className={`px-8 py-2.5 bg-green-600 hover:bg-green-700 rounded-lg text-white font-bold shadow-lg transition-all flex items-center gap-2 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`px-8 py-2.5 bg-green-600 hover:bg-green-700 rounded-lg text-white font-bold shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center gap-2 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {isLoading ? "Đang gửi..." : "Nộp hồ sơ"}
+            {isLoading ? (
+              <>
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+              </>
+            ) : (
+              "Submit Application"
+            )}
           </button>
         </div>
       </form>
