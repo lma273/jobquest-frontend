@@ -40,6 +40,7 @@ const PostJobForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("handleSubmit called"); // 🧪 TEST
     setError("");
 
     const skillsArray = skills.map((item) => item.value);
