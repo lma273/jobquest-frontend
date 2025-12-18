@@ -102,8 +102,12 @@ const JobsList = ({
                     <h2 className={`text-xl font-bold mb-1 ${isActive ? 'text-green-400' : 'text-white'}`}>
                       {job.position}
                     </h2>
-                    <p className="opacity-80 text-sm mb-3">
+                    <p className="opacity-80 text-sm mb-2">
                       {job.company} • {job.location}
+                    </p>
+                    <p className="opacity-70 text-xs mb-3 flex gap-3">
+                      <span className="text-blue-400">💼 {job.experience || 'N/A'}</span>
+                      <span className="text-purple-400">📋 {job.jobType || 'Full-time'}</span>
                     </p>
                     <div className="flex flex-wrap gap-2 mb-2">
                        {(job.skills || []).slice(0, 3).map((s, i) => (
