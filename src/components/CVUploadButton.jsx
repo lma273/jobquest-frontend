@@ -31,7 +31,7 @@ const CVUploadButton = ({ onMatchesFound }) => {
 
       // Call chatbot API
       const response = await axios.post(
-        "http://localhost:8001/find_matches",
+        "https://lakeisha-unhumorous-histographically.ngrok-free.dev/find_matches",
         formData,
         {
           headers: {
