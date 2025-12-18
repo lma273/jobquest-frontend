@@ -69,9 +69,8 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
             experience: formData.experience,
             skills: formattedSkills,
             description: formData.description,
-            postedBy: userData.id || userData._id, // ID người đăng
-            postedAt: new Date()
-        };
+            recruiterEmail: userData?.email
+          };
 
         // 3. Gọi API Java Backend
         // Đảm bảo đường dẫn "/jobs" khớp với Controller của bạn
