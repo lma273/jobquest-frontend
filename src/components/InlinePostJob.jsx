@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import Creatable from "react-select/creatable";
 import { skillOptions } from "../data/constants";
+import api from "../api/axiosConfig"; // 🟢 IMPORT API
 
 // Style cho React-Select (Dark Mode)
 const customSelectStyles = {
@@ -44,26 +45,49 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
     if (userData) {
       setFormData((prev) => ({
         ...prev,
-        // Ưu tiên lấy từ userData, nếu không có thì để rỗng
         company: userData.companyName || userData.company || "UET", 
         location: userData.address || userData.location || "Hà Nội", 
       }));
     }
   }, [userData]);
 
+  // 🟢 HÀM SUBMIT ĐÃ SỬA: GỌI API THẬT
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsPosting(true);
-    
-    // Giả lập API Post Job (Thay bằng API thật của bạn)
-    console.log("Posting Job:", formData);
-    
-    // Simulate delay
-    setTimeout(() => {
-      alert("Đăng tin tuyển dụng thành công!");
-      setIsPosting(false);
-      onSuccess(); 
-    }, 1000);
+
+    try {
+        // 1. Chuẩn hóa dữ liệu Skills (Backend cần List<String>, không phải List<Object>)
+        const formattedSkills = formData.skills.map(skill => skill.value);
+
+        // 2. Tạo Payload gửi đi
+        const jobPayload = {
+            position: formData.title, // Map 'title' thành 'position' cho khớp với Model Java
+            company: formData.company,
+            location: formData.location,
+            jobType: formData.type,   // Map 'type' thành 'jobType' (kiểm tra lại model Java của bạn)
+            experience: formData.experience,
+            skills: formattedSkills,
+            description: formData.description,
+            postedBy: userData.id || userData._id, // ID người đăng
+            postedAt: new Date()
+        };
+
+        // 3. Gọi API Java Backend
+        // Đảm bảo đường dẫn "/jobs" khớp với Controller của bạn
+        const response = await api.post("/jobs", jobPayload);
+
+        if (response.status === 201 || response.status === 200) {
+            alert("✅ Đăng tin tuyển dụng thành công!");
+            onSuccess(); // Gọi hàm này để reload list job ở trang cha
+        }
+
+    } catch (error) {
+        console.error("Lỗi đăng tin:", error);
+        alert("❌ Có lỗi xảy ra khi đăng tin. Vui lòng thử lại!");
+    } finally {
+        setIsPosting(false);
+    }
   };
 
   return (
@@ -79,7 +103,7 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
         </button>
       </div>
 
-      {/* FORM NHẬP LIỆU (1 CỘT GỌN GÀNG) */}
+      {/* FORM NHẬP LIỆU */}
       <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="text-gray-300 text-sm font-semibold block mb-1">Vị trí công việc <span className="text-red-500">*</span></label>
@@ -101,7 +125,7 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
                         type="text" 
                         className="w-full bg-slate-900/50 border border-slate-600 rounded-lg p-3 text-gray-300 cursor-not-allowed"
                         value={formData.company}
-                        readOnly // Chỉ đọc vì lấy từ profile
+                        readOnly 
                     />
                 </div>
                 <div>
@@ -110,7 +134,7 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
                         type="text" 
                         className="w-full bg-slate-900/50 border border-slate-600 rounded-lg p-3 text-gray-300"
                         value={formData.location}
-                        onChange={(e) => setFormData({...formData, location: e.target.value})} // Vẫn cho sửa nếu cần
+                        onChange={(e) => setFormData({...formData, location: e.target.value})} 
                     />
                 </div>
             </div>
@@ -160,7 +184,6 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
             <div>
                 <label className="text-gray-300 text-sm font-semibold block mb-1">
                     Mô tả công việc (JD) <span className="text-red-500">*</span>
-                    {/* GỢI Ý NHÌN SANG SIDEBAR AI */}
                     <span className="text-purple-400 text-xs font-normal ml-2 italic animate-pulse">
                         (Mẹo: Nhìn sang Sidebar bên phải để nhờ AI viết hộ 👉)
                     </span>
@@ -180,20 +203,4 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
                     type="button" 
                     onClick={onCancel}
                     className="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
-                >
-                    Hủy bỏ
-                </button>
-                <button 
-                    type="submit" // Trigger submit form
-                    disabled={isPosting}
-                    className="px-8 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold shadow-lg flex items-center gap-2 transition-transform hover:scale-105"
-                >
-                    {isPosting ? "Đang xử lý..." : "Đăng Tin Ngay 🚀"}
-                </button>
-            </div>
-      </form>
-    </div>
-  );
-};
-
-export default InlinePostJob;
+                ></button>
