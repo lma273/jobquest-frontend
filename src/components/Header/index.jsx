@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 
@@ -15,52 +15,20 @@ const Header = () => {
   const [openNoti, setOpenNoti] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [notifications, setNotifications] = useState([]);
-
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-  const isRecruiter = useSelector((state) => state.auth.isRecruiter);
-  const userData = useSelector((state) => state.auth.userData);
-
-  // Fetch notifications khi component mount
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      if (isAuthenticated && userData?.email && !isRecruiter) {
-        try {
-          const response = await api.get(`/notifications/${userData.email}`);
-          setNotifications(response.data.map(n => ({
-            id: n.id,
-            title: n.title,
-            body: n.message,
-            read: n.read,
-            createdAt: n.createdAt,
-            type: n.type
-          })));
-        } catch (error) {
-          console.error("Không thể tải notifications:", error);
-        }
-      }
-    };
-
-    fetchNotifications();
-    
-    // Polling mỗi 30s để update notifications
-    const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
-  }, [isAuthenticated, userData, isRecruiter]);
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: "Welcome!", body: "Chào mừng bạn đến JobQuest 🎉", read: false },
+    { id: 2, title: "Update", body: "Bạn có 1 thông báo mới.", read: false },
+  ]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const markAllAsReadAndClose = async () => {
-    if (userData?.email) {
-      try {
-        await api.post(`/notifications/${userData.email}/read-all`);
-        setNotifications((prev) =>
-          prev.map((n) => ({ ...n, read: true }))
-        );
-      } catch (error) {
-        console.error("Không thể đánh dấu đã đọc:", error);
-      }
-    }
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const isRecruiter = useSelector((state) => state.auth.isRecruiter);
+
+  const markAllAsReadAndClose = () => {
+    setNotifications((prev) =>
+      prev.map((n) => ({ ...n, read: true }))
+    );
     setOpenNoti(false);
   };
 
