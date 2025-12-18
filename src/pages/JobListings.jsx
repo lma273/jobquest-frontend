@@ -18,6 +18,10 @@ const JobListings = () => {
 
   const [jobs, setJobs] = useState([]);
   
+  // CV Matching states
+  const [cvMatches, setCvMatches] = useState(null);
+  const [jobScores, setJobScores] = useState({});
+  
   // STATE CHO AI: Job đang được chọn để phân tích
   const [selectedJob, setSelectedJob] = useState(null);
 
@@ -32,7 +36,33 @@ const JobListings = () => {
       setIsLoading(true);
       try {
         const jobsResponse = await api.get("/jobs");
-        setJobs(jobsResponse.data);
+        let fetchedJobs = jobsResponse.data;
+        
+        // Kiểm tra xem có CV matches trong localStorage không
+        const storedMatches = localStorage.getItem("cvMatches");
+        if (storedMatches) {
+          const matches = JSON.parse(storedMatches);
+          setCvMatches(matches);
+          
+          // Tạo map điểm số cho từng job
+          const scores = {};
+          matches.forEach(match => {
+            scores[match.id] = match.score;
+          });
+          setJobScores(scores);
+          
+          // Sắp xếp jobs theo điểm matching (cao → thấp)
+          fetchedJobs = fetchedJobs.sort((a, b) => {
+            const scoreA = scores[a.id || a._id] || 0;
+            const scoreB = scores[b.id || b._id] || 0;
+            return scoreB - scoreA;
+          });
+          
+          // Xóa localStorage sau khi sử dụng (optional)
+          // localStorage.removeItem("cvMatches");
+        }
+        
+        setJobs(fetchedJobs);
       } catch (error) {
         console.error("Error fetching jobs:", error);
       } finally {
@@ -133,6 +163,7 @@ const JobListings = () => {
             <JobsList
               actionLoading={actionLoading}
               jobs={jobs}
+              jobScores={jobScores}
               onDelete={deleteJob}
               
               // Props cho AI (Candidate)

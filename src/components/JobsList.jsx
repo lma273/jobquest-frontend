@@ -7,6 +7,7 @@ import InlinePostJob from "./InlinePostJob"; // Form đăng bài cho Recruiter (
 
 const JobsList = ({
   jobs = [],
+  jobScores = {},
   onApplySubmit,
   onDelete,
   setSelectedJob,
@@ -83,7 +84,8 @@ const JobsList = ({
           jobs.map((job) => {
             const jobId = job.id || job._id;
             const isActive = jobId === activeJobId;      
-            const isApplying = jobId === applyingJobId;  
+            const isApplying = jobId === applyingJobId;
+            const matchScore = jobScores[jobId]; // Lấy điểm matching nếu có
 
             return (
               <div key={jobId}>
@@ -91,7 +93,7 @@ const JobsList = ({
                 <div
                   onClick={() => handleCardClick(job)}
                   className={`
-                    p-5 flex justify-between items-start gap-4 border rounded-xl cursor-pointer transition-all duration-300
+                    p-5 flex justify-between items-start gap-4 border rounded-xl cursor-pointer transition-all duration-300 relative
                     ${isPostingJob ? "opacity-50 cursor-not-allowed" : ""} 
                     ${isActive 
                       ? "border-green-500 bg-gray-800 shadow-[0_0_15px_rgba(34,197,94,0.2)]" 
@@ -99,6 +101,13 @@ const JobsList = ({
                     }
                   `}
                 >
+                  {/* Badge điểm matching */}
+                  {matchScore !== undefined && (
+                    <div className="absolute top-3 right-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                      {Math.round(matchScore * 100)}% Match
+                    </div>
+                  )}
+
                   <div className="flex-1">
                     <h2 className={`text-xl font-bold mb-1 ${isActive ? 'text-green-400' : 'text-white'}`}>
                       {job.position}
@@ -173,6 +182,7 @@ const JobsList = ({
 
 JobsList.propTypes = {
   jobs: PropTypes.arrayOf(PropTypes.object),
+  jobScores: PropTypes.object,
   onApplySubmit: PropTypes.func,
   onDelete: PropTypes.func,
   setSelectedJob: PropTypes.func,

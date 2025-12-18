@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 
 import NotificationModal from "../modals/NotificationModal";
+import CVUploadButton from "../CVUploadButton";
 import Logo from "../Logo";
 import api from "../../api/axiosConfig";
 import { logout as storeLogout } from "../../store/authSlice";
@@ -63,6 +64,15 @@ const Header = () => {
     setOpenNoti(false);
   };
 
+  const handleCVMatches = (cvText, matches) => {
+    // Lưu CV text và matches vào localStorage để dùng trong JobListings
+    localStorage.setItem("cvText", cvText);
+    localStorage.setItem("cvMatches", JSON.stringify(matches));
+    
+    // Chuyển đến trang Job Listings
+    navigate("/jobs");
+  };
+
   const handleLogout = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -120,7 +130,12 @@ const Header = () => {
 
           {isAuthenticated ? (
             <div className="flex justify-around items-center gap-x-6 2xl:gap-x-8">
-              {/* 🔔 Notification */}
+              {/* � CV Upload - Chỉ hiển thị cho Candidate */}
+              {!isRecruiter && (
+                <CVUploadButton onMatchesFound={handleCVMatches} />
+              )}
+
+              {/* �🔔 Notification */}
               <button
                 type="button"
                 onClick={() => setOpenNoti(true)}
