@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import Creatable from "react-select/creatable";
 import { skillOptions } from "../data/constants";
-import api from "../api/axiosConfig"; // 🟢 IMPORT API
+import api from "../api/axiosConfig";
+import { addJobIdToRecruiter } from "../store/authSlice"; // 🔥 THÊM
 
 // Style cho React-Select (Dark Mode)
 const customSelectStyles = {
@@ -25,6 +26,7 @@ const customSelectStyles = {
 };
 
 const InlinePostJob = ({ onCancel, onSuccess }) => {
+  const dispatch = useDispatch(); // 🔥 THÊM
   const userData = useSelector((state) => state.auth.userData);
   
   // State form chính
@@ -77,12 +79,21 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
         console.log("📦 jobPayload:", jobPayload);
 
         // 3. Gọi API Java Backend
-        // Đảm bảo đường dẫn "/jobs" khớp với Controller của bạn
-        const response = await api.post("/jobs", jobPayload);
+        const jobResponse = await api.post("/jobs", jobPayload);
 
-        if (response.status === 201 || response.status === 200) {
-            alert("✅ Đăng tin tuyển dụng thành công!");
-            onSuccess(); // Gọi hàm này để reload list job ở trang cha
+        if (jobResponse.status === 201 || jobResponse.status === 200) {
+            // 4. Thêm jobId vào recruiter
+            const appendResponse = await api.post(
+                `/recruiters/${userData?.email}/appendjob`,
+                { jobId: jobResponse.data.id }
+            );
+
+            if (appendResponse.status === 200) {
+                // 5. Update Redux store
+                dispatch(addJobIdToRecruiter({ jobId: jobResponse.data.id }));
+                alert("✅ Đăng tin tuyển dụng thành công!");
+                onSuccess(); // Reload list job
+            }
         }
 
     } catch (error) {
