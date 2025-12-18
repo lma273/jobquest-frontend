@@ -72,6 +72,10 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
             recruiterEmail: userData?.email
           };
 
+        // 🧪 DEBUG: Kiểm tra recruiterEmail
+        console.log("📧 userData.email:", userData?.email);
+        console.log("📦 jobPayload:", jobPayload);
+
         // 3. Gọi API Java Backend
         // Đảm bảo đường dẫn "/jobs" khớp với Controller của bạn
         const response = await api.post("/jobs", jobPayload);
