@@ -118,6 +118,10 @@ const InlineJobApplication = ({ job, onSubmit, onCancel }) => {
           <p className="text-sm text-gray-400 mt-1">
             {job?.company} • {job?.location}
           </p>
+          <p className="text-xs text-gray-500 mt-1 flex gap-3">
+            <span>💼 {job?.experience || 'N/A'}</span>
+            <span>📋 {job?.jobType || 'Full-time'}</span>
+          </p>
         </div>
         <button 
           onClick={onCancel}
@@ -126,6 +130,29 @@ const InlineJobApplication = ({ job, onSubmit, onCancel }) => {
           ✕ Đóng
         </button>
       </div>
+
+      {/* 📄 JOB DESCRIPTION */}
+      {job?.description && (
+        <div className="mb-6 p-4 bg-slate-900/50 border border-slate-700 rounded-lg">
+          <h4 className="text-sm font-semibold text-gray-300 mb-2 flex items-center gap-2">
+            📄 Mô tả công việc
+          </h4>
+          <p className="text-sm text-gray-400 leading-relaxed whitespace-pre-wrap">
+            {job.description}
+          </p>
+          {/* Skills tags */}
+          {job?.skills && job.skills.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="text-xs text-gray-500">Kỹ năng yêu cầu:</span>
+              {job.skills.map((skill, idx) => (
+                <span key={idx} className="px-2 py-1 bg-slate-700 rounded text-xs text-green-400 border border-green-600/30">
+                  {skill}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Form Content */}
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
