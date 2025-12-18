@@ -115,6 +115,20 @@ const ApplicationsSection = () => {
       
 
       if (response.status === 200) {
+        // Tạo notification cho candidate
+        try {
+          await api.post('/notifications/create', {
+            userId: item.email,
+            title: "Hồ sơ được chấp nhận! 🎉",
+            message: `Chúc mừng! Hồ sơ của bạn cho vị trí "${item.position}" tại ${item.company || userData?.company} đã được chấp nhận.`,
+            type: "application_accepted",
+            jobTitle: item.position,
+            company: item.company || userData?.company
+          });
+        } catch (notiError) {
+          console.error("Không thể tạo notification:", notiError);
+        }
+
         setPendingApplications(
           pendingApplications.filter(
             (application) => application.id !== item.id
@@ -141,6 +155,20 @@ const ApplicationsSection = () => {
       );
 
       if (response.status === 200) {
+        // Tạo notification cho candidate
+        try {
+          await api.post('/notifications/create', {
+            userId: item.email,
+            title: "Hồ sơ chưa phù hợp",
+            message: `Cảm ơn bạn đã quan tâm đến vị trí "${item.position}" tại ${item.company || userData?.company}. Rất tiếc lần này chúng tôi chưa thể tiếp tục với hồ sơ của bạn.`,
+            type: "application_rejected",
+            jobTitle: item.position,
+            company: item.company || userData?.company
+          });
+        } catch (notiError) {
+          console.error("Không thể tạo notification:", notiError);
+        }
+
         setPendingApplications(
           pendingApplications.filter(
             (application) => application.id !== item.id
