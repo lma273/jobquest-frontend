@@ -184,21 +184,38 @@ const ApplicationsSection = () => {
           </p>
 
           <button
-            onClick={() => {
-              // Tải file PDF về máy
+            onClick={async () => {
+              // Tải file PDF từ backend
               if (item.resumeLink) {
-                const link = document.createElement('a');
-                link.href = item.resumeLink;
-                link.download = `CV_${item.name}.pdf`;
-                link.target = '_blank';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                try {
+                  // Gọi API backend để lấy file
+                  const response = await api.get(item.resumeLink, {
+                    responseType: 'blob' // Quan trọng: nhận file dạng blob
+                  });
+                  
+                  // Tạo URL từ blob
+                  const blob = new Blob([response.data], { type: 'application/pdf' });
+                  const url = window.URL.createObjectURL(blob);
+                  
+                  // Tạo link tải xuống
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `CV_${item.name.replace(/\s/g, '_')}.pdf`;
+                  document.body.appendChild(link);
+                  link.click();
+                  
+                  // Cleanup
+                  document.body.removeChild(link);
+                  window.URL.revokeObjectURL(url);
+                } catch (error) {
+                  console.error('Lỗi tải CV:', error);
+                  alert('Không thể tải file CV. Vui lòng thử lại!');
+                }
               } else {
                 alert('Không tìm thấy file CV');
               }
             }}
-            className="underline text-blue-400 hover:text-blue-300 transition-colors"
+            className="underline text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
           >
             📄 Tải Resume
           </button>
