@@ -21,6 +21,7 @@ const JobsList = ({
   const navigate = useNavigate();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const isRecruiter = useSelector((state) => state.auth.isRecruiter);
+  const userData = useSelector((state) => state.auth.userData); // 🔥 THÊM
 
   useEffect(() => {
     if (!isAuthenticated) navigate("/");
@@ -133,11 +134,11 @@ const JobsList = ({
                       </button>
                     )}
 
-                    {isRecruiter && onDelete && (
+                    {isRecruiter && onDelete && job.recruiterEmail === userData?.email && (
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
-                                if(window.confirm("Bạn có chắc muốn xóa job này?")) onDelete(jobId);
+                                if(window.confirm("Bạn có chắc muốn xóa job này?")) onDelete(job);
                             }}
                             className="px-4 py-2 rounded-lg bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white text-sm font-semibold transition-all border border-red-600/50"
                         >

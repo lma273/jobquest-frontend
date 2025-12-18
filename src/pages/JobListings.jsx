@@ -90,7 +90,7 @@ const JobListings = () => {
         // Xóa job khỏi danh sách recruiter
         if (userData?.email) {
             try {
-              await api.post(`/recruiters/${userData.email}/removejob`, job.id);
+              await api.post(`/recruiters/${userData.email}/removejob`, { jobId: job.id });
             } catch (unlinkError) {
               console.log("Unlink error:", unlinkError);
             }
