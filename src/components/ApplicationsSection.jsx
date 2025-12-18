@@ -183,9 +183,25 @@ const ApplicationsSection = () => {
             ))}
           </p>
 
-          <a href={item.resumeLink} target="_blank" className="underline">
-            Resume
-          </a>
+          <button
+            onClick={() => {
+              // Tải file PDF về máy
+              if (item.resumeLink) {
+                const link = document.createElement('a');
+                link.href = item.resumeLink;
+                link.download = `CV_${item.name}.pdf`;
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              } else {
+                alert('Không tìm thấy file CV');
+              }
+            }}
+            className="underline text-blue-400 hover:text-blue-300 transition-colors"
+          >
+            📄 Tải Resume
+          </button>
         </div>
       </div>
     );
