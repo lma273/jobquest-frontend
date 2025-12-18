@@ -188,10 +188,14 @@ const ApplicationsSection = () => {
               // Tải file PDF từ backend
               if (item.resumeLink) {
                 try {
+                  console.log("📄 Đang tải CV từ:", item.resumeLink); // DEBUG
+                  
                   // Gọi API backend để lấy file
                   const response = await api.get(item.resumeLink, {
                     responseType: 'blob' // Quan trọng: nhận file dạng blob
                   });
+                  
+                  console.log("✅ Tải thành công, response:", response); // DEBUG
                   
                   // Tạo URL từ blob
                   const blob = new Blob([response.data], { type: 'application/pdf' });
@@ -208,7 +212,9 @@ const ApplicationsSection = () => {
                   document.body.removeChild(link);
                   window.URL.revokeObjectURL(url);
                 } catch (error) {
-                  console.error('Lỗi tải CV:', error);
+                  console.error('❌ Lỗi chi tiết:', error);
+                  console.error('❌ Response:', error.response);
+                  console.error('❌ resumeLink:', item.resumeLink);
                   alert('Không thể tải file CV. Vui lòng thử lại!');
                 }
               } else {
