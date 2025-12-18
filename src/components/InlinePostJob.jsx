@@ -203,4 +203,20 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
                     type="button" 
                     onClick={onCancel}
                     className="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
-                ></button>
+                >
+                    Hủy bỏ
+                </button>
+                <button 
+                    type="submit" 
+                    disabled={isPosting}
+                    className="px-8 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold shadow-lg flex items-center gap-2 transition-transform hover:scale-105"
+                >
+                    {isPosting ? "Đang xử lý..." : "Đăng Tin Ngay 🚀"}
+                </button>
+            </div>
+      </form>
+    </div>
+  );
+};
+
+export default InlinePostJob;
