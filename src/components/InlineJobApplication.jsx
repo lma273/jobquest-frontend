@@ -110,25 +110,17 @@ const InlineJobApplication = ({ job, onSubmit, onCancel }) => {
   return (
     <div className="bg-slate-800 border border-green-600/50 rounded-xl p-6 mt-4 shadow-2xl animate-fade-in-down">
       {/* Header */}
-      <div className="flex justify-between items-start mb-6 border-b border-gray-700 pb-4">
-        <div>
-          <h3 className="text-xl font-bold text-green-400">
-            🚀 Ứng tuyển: {job?.position}
-          </h3>
-          <p className="text-sm text-gray-400 mt-1">
-            {job?.company} • {job?.location}
-          </p>
-          <p className="text-xs text-gray-500 mt-1 flex gap-3">
-            <span>💼 {job?.experience || 'N/A'}</span>
-            <span>📋 {job?.jobType || 'Full-time'}</span>
-          </p>
-        </div>
-        <button 
-          onClick={onCancel}
-          className="text-gray-400 hover:text-white bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded transition-colors text-sm"
-        >
-          ✕ Đóng
-        </button>
+      <div className="mb-6 border-b border-gray-700 pb-4">
+        <h3 className="text-xl font-bold text-green-400">
+          🚀 Ứng tuyển: {job?.position}
+        </h3>
+        <p className="text-sm text-gray-400 mt-1">
+          {job?.company} • {job?.location}
+        </p>
+        <p className="text-xs text-gray-500 mt-1 flex gap-3">
+          <span>💼 {job?.experience || 'N/A'}</span>
+          <span>📋 {job?.jobType || 'Full-time'}</span>
+        </p>
       </div>
 
       {/* 📄 JOB DESCRIPTION */}
@@ -140,17 +132,6 @@ const InlineJobApplication = ({ job, onSubmit, onCancel }) => {
           <p className="text-sm text-gray-400 leading-relaxed whitespace-pre-wrap">
             {job.description}
           </p>
-          {/* Skills tags */}
-          {job?.skills && job.skills.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              <span className="text-xs text-gray-500">Kỹ năng yêu cầu:</span>
-              {job.skills.map((skill, idx) => (
-                <span key={idx} className="px-2 py-1 bg-slate-700 rounded text-xs text-green-400 border border-green-600/30">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          )}
         </div>
       )}
 
@@ -241,16 +222,8 @@ const InlineJobApplication = ({ job, onSubmit, onCancel }) => {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="md:col-span-2 flex justify-end gap-3 pt-4 border-t border-gray-700 mt-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-white font-medium transition-colors"
-          >
-            Hủy bỏ
-          </button>
-          
+        {/* Action Button */}
+        <div className="md:col-span-2 flex justify-end pt-4 border-t border-gray-700 mt-2">
           <button
             type="submit"
             disabled={isLoading}
