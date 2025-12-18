@@ -36,6 +36,7 @@ const CVUploadButton = ({ onMatchesFound }) => {
         {
           headers: {
             "Content-Type": "multipart/form-data",
+            "ngrok-skip-browser-warning": "true",
           },
         }
       );
@@ -46,7 +47,9 @@ const CVUploadButton = ({ onMatchesFound }) => {
       }
     } catch (err) {
       console.error("Error uploading CV:", err);
-      setError("Failed to analyze CV. Please try again.");
+      console.error("Full error:", err.response?.data || err.message);
+      const errorMsg = err.response?.data?.detail || "Failed to analyze CV. Please try again.";
+      setError(errorMsg);
     } finally {
       setIsUploading(false);
       // Reset input
