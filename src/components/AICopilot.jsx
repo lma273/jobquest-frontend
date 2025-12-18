@@ -96,7 +96,7 @@ const AICopilot = ({ selectedJob, isPostingJob }) => {
 
     try {
         // Gọi API Viết JD
-        const response = await fetch("http://127.0.0.1:8000/generate_jd", {
+        const response = await fetch("https://lakeisha-unhumorous-histographically.ngrok-free.dev/generate_jd", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ rough_input: jdInput })
