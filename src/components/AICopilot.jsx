@@ -2,21 +2,29 @@ import { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { useSelector } from "react-redux";
 
-const AICopilot = ({ selectedJob }) => {
+const AICopilot = ({ selectedJob, isPostingJob }) => {
   const [messages, setMessages] = useState([]);
-  const [inputMessage, setInputMessage] = useState(""); // State cho ô nhập liệu
+  const [inputMessage, setInputMessage] = useState(""); 
   const [isLoading, setIsLoading] = useState(false);
+  
+  // State riêng cho chế độ Recruiter (Viết JD)
+  const [jdInput, setJdInput] = useState("");
+  const [generatedJD, setGeneratedJD] = useState("");
+
   const scrollRef = useRef(null);
-  
   const userData = useSelector((state) => state.auth.userData) || {};
-  
-  // Logic lấy CV (như cũ)
+  const isRecruiter = useSelector((state) => state.auth.isRecruiter);
+
+  // =========================================================
+  // LOGIC 1: CANDIDATE CONSULTANT (Tư vấn cho ứng viên)
+  // =========================================================
   const userCV = userData.cvText && userData.cvText.length > 50 
     ? userData.cvText 
     : "Tôi là lập trình viên Fullstack với 2 năm kinh nghiệm ReactJS và NodeJS. Tôi có kỹ năng về MongoDB, Express và TailwindCSS.";
 
   useEffect(() => {
-    if (selectedJob) {
+    // Chỉ chào hỏi nếu KHÔNG phải là Recruiter đang đăng bài
+    if (selectedJob && !isPostingJob) {
       setMessages([
         { 
           role: "system", 
@@ -24,30 +32,25 @@ const AICopilot = ({ selectedJob }) => {
         }
       ]);
     }
-  }, [selectedJob]);
+  }, [selectedJob, isPostingJob]);
 
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (!isPostingJob) {
+        scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, isPostingJob]);
 
-  // Hàm xử lý gửi tin nhắn (Dùng chung cho cả Nút bấm và Chat tự do)
   const handleConsult = async (manualQuestion = null) => {
     if (!selectedJob) return;
 
-    // Xác định câu hỏi: Nếu bấm nút thì dùng text mẫu, nếu không thì dùng text trong ô input
     let questionToSend = manualQuestion;
-
     if (!questionToSend) {
-        // Trường hợp nhập tay
         if (!inputMessage.trim()) return;
         questionToSend = inputMessage;
     }
 
     setIsLoading(true);
-    // Xóa ô nhập liệu ngay lập tức nếu là chat tay
     if (!manualQuestion) setInputMessage("");
-
-    // Hiện câu hỏi user lên màn hình
     setMessages((prev) => [...prev, { role: "user", content: questionToSend }]);
 
     try {
@@ -58,6 +61,7 @@ const AICopilot = ({ selectedJob }) => {
         mode: "candidate"
       };
 
+      // Gọi API Tư vấn
       const response = await fetch("https://lakeisha-unhumorous-histographically.ngrok-free.dev/consult", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -75,7 +79,6 @@ const AICopilot = ({ selectedJob }) => {
     }
   };
 
-  // Xử lý khi nhấn Enter
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -83,6 +86,89 @@ const AICopilot = ({ selectedJob }) => {
     }
   };
 
+  // =========================================================
+  // LOGIC 2: RECRUITER JD WRITER (Viết JD cho nhà tuyển dụng)
+  // =========================================================
+  const handleGenerateJD = async () => {
+    if (!jdInput.trim()) return;
+    setIsLoading(true);
+    setGeneratedJD(""); 
+
+    try {
+        // Gọi API Viết JD
+        const response = await fetch("http://127.0.0.1:8000/generate_jd", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ rough_input: jdInput })
+        });
+        const data = await response.json();
+        setGeneratedJD(data.jd_content);
+    } catch (error) {
+        console.error(error);
+        setGeneratedJD("⚠️ Lỗi kết nối AI Server.");
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  const handleCopyJD = () => {
+      navigator.clipboard.writeText(generatedJD);
+      alert("Đã copy JD! Hãy dán vào form bên cạnh.");
+  };
+
+  // =========================================================
+  // RENDER UI: QUYẾT ĐỊNH HIỂN THỊ DỰA TRÊN NGỮ CẢNH
+  // =========================================================
+
+  // 🟣 CASE 1: RECRUITER ĐANG POST JOB -> HIỆN CÔNG CỤ VIẾT JD
+  if (isRecruiter && isPostingJob) {
+    return (
+        <div className="flex flex-col h-full bg-slate-900 border-l border-gray-700 shadow-2xl">
+            <div className="p-4 bg-purple-600 text-white shadow-md">
+                <h3 className="font-bold flex items-center gap-2 text-lg">✨ AI JD Writer</h3>
+                <p className="text-xs opacity-90 mt-1">Trợ lý viết mô tả công việc</p>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                {/* Input Yêu cầu thô */}
+                <div className="bg-slate-800 p-3 rounded-lg border border-slate-700">
+                    <label className="text-xs text-purple-300 font-bold mb-2 block uppercase">Bước 1: Nhập yêu cầu sơ bộ</label>
+                    <textarea 
+                        className="w-full bg-slate-900 text-white text-sm p-3 rounded border border-slate-600 focus:border-purple-500 outline-none h-32 resize-none placeholder-gray-500"
+                        placeholder="VD: Cần tuyển Java Dev, 3 năm kinh nghiệm, làm việc ở Cầu Giấy. Lương khoảng 2000$. Yêu cầu biết Spring Boot và tiếng Anh giao tiếp..."
+                        value={jdInput}
+                        onChange={(e) => setJdInput(e.target.value)}
+                    ></textarea>
+                    <button 
+                        onClick={handleGenerateJD}
+                        disabled={isLoading || !jdInput}
+                        className="w-full mt-2 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded transition-all disabled:opacity-50 flex justify-center items-center gap-2"
+                    >
+                        {isLoading ? (
+                           <>Đang viết... <span className="animate-spin">⏳</span></>
+                        ) : "⚡ Viết lại chuyên nghiệp"}
+                    </button>
+                </div>
+
+                {/* Kết quả Output */}
+                {generatedJD && (
+                    <div className="bg-slate-800 p-3 rounded-lg border border-slate-700 animate-fade-in-down">
+                        <div className="flex justify-between items-center mb-2">
+                             <label className="text-xs text-green-400 font-bold uppercase">Bước 2: Kết quả</label>
+                             <button onClick={handleCopyJD} className="text-xs bg-slate-700 hover:bg-white hover:text-slate-900 text-white px-2 py-1 rounded transition">Copy</button>
+                        </div>
+                        <div className="bg-slate-950 p-3 rounded text-gray-300 text-xs whitespace-pre-wrap h-64 overflow-y-auto custom-scrollbar border border-slate-800 leading-relaxed">
+                            {generatedJD}
+                        </div>
+                        <p className="text-[10px] text-gray-500 mt-2 text-center">Copy nội dung trên và dán vào form bên cạnh nhé!</p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+  }
+
+  // ⚪ CASE 2: CHƯA CHỌN JOB (Khi không phải đang post job)
   if (!selectedJob) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-gray-400 bg-gray-900 border-l border-gray-700 p-6 shadow-xl">
@@ -92,6 +178,7 @@ const AICopilot = ({ selectedJob }) => {
     );
   }
 
+  // 🟢 CASE 3: GIAO DIỆN TƯ VẤN CHO ỨNG VIÊN (Mặc định)
   return (
     <div className="flex flex-col h-full bg-gray-900 border-l border-gray-700 shadow-2xl">
       {/* Header */}
@@ -102,7 +189,6 @@ const AICopilot = ({ selectedJob }) => {
             Job: <span className="font-bold">{selectedJob.position}</span>
             </p>
         </div>
-        {/* Nút xóa chat (Option) */}
         <button onClick={() => setMessages([])} className="text-xs bg-green-700 hover:bg-green-800 px-2 py-1 rounded">
             Clear
         </button>
@@ -134,8 +220,6 @@ const AICopilot = ({ selectedJob }) => {
 
       {/* Footer: Quick Actions + Input */}
       <div className="p-3 bg-gray-900 border-t border-gray-700 flex flex-col gap-3">
-        
-        {/* 3 Nút gợi ý (Vẫn giữ lại vì nó rất tiện) */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button 
                 onClick={() => handleConsult("Tại sao tôi phù hợp với công việc này? Phân tích dựa trên CV.")}
@@ -157,7 +241,6 @@ const AICopilot = ({ selectedJob }) => {
             </button>
         </div>
 
-        {/* Ô nhập liệu tự do */}
         <div className="flex gap-2">
             <input
                 type="text"
@@ -183,6 +266,7 @@ const AICopilot = ({ selectedJob }) => {
 
 AICopilot.propTypes = {
   selectedJob: PropTypes.object,
+  isPostingJob: PropTypes.bool,
 };
 
 export default AICopilot;

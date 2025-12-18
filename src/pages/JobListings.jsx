@@ -5,7 +5,6 @@ import api from "../api/axiosConfig";
 import JobsList from "../components/JobsList";
 import AICopilot from "../components/AICopilot"; 
 import Confirmation from "../components/modals/Confirmation"; 
-// Lưu ý: Đã bỏ import JobApplication modal vì chuyển sang dùng Inline Form
 
 const JobListings = () => {
   const userData = useSelector((state) => state.auth.userData);
@@ -24,6 +23,9 @@ const JobListings = () => {
 
   // STATE CHO INLINE APPLY: ID của Job đang mở form ứng tuyển
   const [applyingJobId, setApplyingJobId] = useState(null);
+
+  // 🟢 QUAN TRỌNG: STATE QUẢN LÝ VIỆC ĐĂNG BÀI (Để đồng bộ giữa List và Sidebar)
+  const [isPostingJob, setIsPostingJob] = useState(false);
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -48,18 +50,15 @@ const JobListings = () => {
   // --- LOGIC APPLY (INLINE) ---
   const handleApplySubmit = async (formData) => {
     try {
-      // formData gồm { name, email, cvLink..., jobId } từ InlineForm gửi lên
       const applyResponse = await api.post("/applications", formData);
 
       if (applyResponse.status === 201) {
-        // 1. Đóng form inline lại
         setApplyingJobId(null);
         
-        // 2. Tìm thông tin job để hiện thông báo cho đẹp
-        const jobApplied = jobs.find(j => (j.id || j._id) === formData.jobId);
+        const jobApplied = jobs.find(j => (j.id || j._id) === formData.get("jobId")); // Lưu ý: formData.get nếu dùng FormData
         
         setConfirmationMessage(
-          `Successfully applied to the job: ${jobApplied?.position}`
+          `Successfully applied to the job: ${jobApplied?.position || 'the position'}`
         );
         setIsConfirmationModalOpen(true);
       }
@@ -72,7 +71,7 @@ const JobListings = () => {
     }
   };
 
-  // --- LOGIC DELETE (GIỮ NGUYÊN) ---
+  // --- LOGIC DELETE ---
   const deleteJob = async (job) => {
     setActionLoading(true);
 
@@ -81,7 +80,6 @@ const JobListings = () => {
       const deleteOk = deleteResponse.status === 204 || deleteResponse.status === 200;
 
       if (deleteOk) {
-        // Cập nhật lại danh sách job trên UI
         setJobs(jobs.filter((item) => item.id !== job.id));
         
         setConfirmationMessage(
@@ -89,24 +87,20 @@ const JobListings = () => {
         );
         setIsConfirmationModalOpen(true);
 
-        // Xóa job khỏi danh sách của recruiter (nếu API hỗ trợ)
+        // Xóa job khỏi danh sách recruiter
         if (userData?.email) {
             try {
-              await api.post(
-                `/recruiters/${userData.email}/removejob`,
-                job.id
-              );
+              await api.post(`/recruiters/${userData.email}/removejob`, job.id);
             } catch (unlinkError) {
               console.log("Unlink error:", unlinkError);
             }
         }
 
-        // QUAN TRỌNG: Nếu xóa đúng cái job đang hiện trên AI Panel thì reset AI
+        // Reset AI nếu xóa đúng job đang chọn
         if (selectedJob?.id === job.id) {
             setSelectedJob(null);
         }
         
-        // Nếu xóa đúng job đang mở form apply thì cũng reset
         if (applyingJobId === job.id) {
             setApplyingJobId(null);
         }
@@ -134,36 +128,41 @@ const JobListings = () => {
       ) : (
         <div className="flex flex-1 gap-6 h-full pb-4">
           
-          {/* --- CỘT TRÁI: DANH SÁCH JOB (Scrollable) --- */}
+          {/* --- CỘT TRÁI: DANH SÁCH JOB --- */}
           <div className="flex-1 h-full overflow-y-auto pr-2 custom-scrollbar">
             <JobsList
               actionLoading={actionLoading}
               jobs={jobs}
               onDelete={deleteJob}
               
-              // Props cho AI (Click thẻ job -> AI chạy)
+              // Props cho AI (Candidate)
               setSelectedJob={setSelectedJob} 
               activeJobId={selectedJob?.id || selectedJob?._id}
               
-              // Props cho Inline Apply (Click Apply -> Mở form dưới thẻ job)
+              // Props cho Inline Apply (Candidate)
               applyingJobId={applyingJobId}
               setApplyingJobId={setApplyingJobId}
               onApplySubmit={handleApplySubmit}
+
+              // 🟢 QUAN TRỌNG: Props cho Post Job (Recruiter)
+              isPostingJob={isPostingJob}       // Truyền state xuống
+              setIsPostingJob={setIsPostingJob} // Truyền hàm set xuống
             />
           </div>
 
-          {/* --- CỘT PHẢI: AI COPILOT (Cố định) --- */}
-          {/* Ẩn trên mobile, hiện trên màn hình lớn */}
+          {/* --- CỘT PHẢI: AI COPILOT --- */}
           <div className="hidden lg:block w-[400px] xl:w-[450px] h-full transition-all duration-500 ease-in-out">
              <div className="h-full rounded-2xl overflow-hidden border border-gray-700 shadow-2xl bg-gray-800">
-                <AICopilot selectedJob={selectedJob} />
+                <AICopilot 
+                    selectedJob={selectedJob} 
+                    isPostingJob={isPostingJob} // 🟢 QUAN TRỌNG: Truyền vào để Sidebar biết khi nào đổi giao diện
+                />
              </div>
           </div>
 
         </div>
       )}
 
-      {/* Chỉ còn Modal thông báo thành công (Modal Apply đã bỏ) */}
       <Confirmation
         isOpen={isConfirmationModalOpen}
         onClose={closeConfirmationModal}

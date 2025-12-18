@@ -32,14 +32,11 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
     company: "",
     location: "",
     type: "Full-time",
-    experience: "", // Thêm trường kinh nghiệm
+    experience: "",
     skills: [],
     description: "",
   });
 
-  // State cho AI Assistant
-  const [aiResult, setAiResult] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
 
   // 🟢 AUTO-FILL: Lấy thông tin Recruiter điền sẵn vào form
@@ -54,44 +51,6 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
     }
   }, [userData]);
 
-  // --- HÀM GỌI AI VIẾT JD ---
-  const handleGenerateJD = async () => {
-    if (!formData.title) {
-      alert("Vui lòng nhập 'Vị trí công việc' bên trái trước!");
-      return;
-    }
-    
-    setIsGenerating(true);
-    try {
-      const skillsText = formData.skills.map(s => s.value).join(", ");
-      
-      const response = await fetch("http://127.0.0.1:8000/generate_jd", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        // Gửi cả kinh nghiệm sang cho AI
-        body: JSON.stringify({ 
-            title: formData.title, 
-            skills: skillsText,
-            experience: formData.experience 
-        })
-      });
-      
-      const data = await response.json();
-      setAiResult(data.jd_content); // Hiển thị kết quả vào ô Review
-      
-    } catch (error) {
-      console.error("AI Error:", error);
-      alert("AI đang bận, vui lòng thử lại!");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  // Hàm copy từ AI sang Form chính
-  const handleUseAIContent = () => {
-      setFormData(prev => ({ ...prev, description: aiResult }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsPosting(true);
@@ -99,6 +58,7 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
     // Giả lập API Post Job (Thay bằng API thật của bạn)
     console.log("Posting Job:", formData);
     
+    // Simulate delay
     setTimeout(() => {
       alert("Đăng tin tuyển dụng thành công!");
       setIsPosting(false);
@@ -119,16 +79,13 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
         </button>
       </div>
 
-      {/* GRID LAYOUT: 2 CỘT */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
-        {/* ================= CỘT TRÁI: FORM ĐIỀN CHÍNH ================= */}
-        <form id="post-job-form" onSubmit={handleSubmit} className="space-y-5">
+      {/* FORM NHẬP LIỆU (1 CỘT GỌN GÀNG) */}
+      <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="text-gray-300 text-sm font-semibold block mb-1">Vị trí công việc <span className="text-red-500">*</span></label>
               <input 
                 type="text" 
-                className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:border-green-500 outline-none"
+                className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:border-green-500 outline-none placeholder-gray-500"
                 placeholder="VD: Senior Java Developer"
                 value={formData.title}
                 onChange={(e) => setFormData({...formData, title: e.target.value})}
@@ -136,8 +93,8 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
               />
             </div>
 
-            {/* Hàng 2: Công ty & Địa điểm (Auto-filled) */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Hàng 2: Công ty & Địa điểm */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label className="text-gray-300 text-sm font-semibold block mb-1">Công ty</label>
                     <input 
@@ -159,12 +116,12 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
             </div>
 
             {/* Hàng 3: Kinh nghiệm & Loại hình */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label className="text-gray-300 text-sm font-semibold block mb-1">Kinh nghiệm (Năm)</label>
                     <input 
                         type="text" 
-                        className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:border-green-500 outline-none"
+                        className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:border-green-500 outline-none placeholder-gray-500"
                         placeholder="VD: 2 năm / Fresher"
                         value={formData.experience}
                         onChange={(e) => setFormData({...formData, experience: e.target.value})}
@@ -201,89 +158,40 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
 
             {/* Main Description */}
             <div>
-                <label className="text-gray-300 text-sm font-semibold block mb-1">Mô tả công việc (JD) <span className="text-red-500">*</span></label>
+                <label className="text-gray-300 text-sm font-semibold block mb-1">
+                    Mô tả công việc (JD) <span className="text-red-500">*</span>
+                    {/* GỢI Ý NHÌN SANG SIDEBAR AI */}
+                    <span className="text-purple-400 text-xs font-normal ml-2 italic animate-pulse">
+                        (Mẹo: Nhìn sang Sidebar bên phải để nhờ AI viết hộ 👉)
+                    </span>
+                </label>
                 <textarea 
-                    className="w-full bg-slate-900 border border-slate-600 rounded-lg p-4 text-gray-200 focus:border-green-500 outline-none leading-relaxed min-h-[250px]"
-                    placeholder="Nội dung JD sẽ ở đây..."
+                    className="w-full bg-slate-900 border border-slate-600 rounded-lg p-4 text-gray-200 focus:border-green-500 outline-none leading-relaxed min-h-[250px] placeholder-gray-500"
+                    placeholder="Copy JD từ AI bên phải và dán vào đây..."
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                     required
                 ></textarea>
             </div>
-        </form>
 
-        {/* ================= CỘT PHẢI: AI ASSISTANT ================= */}
-        <div className="bg-slate-900/50 border border-purple-500/30 rounded-xl p-5 flex flex-col h-full">
-            <div className="mb-4">
-                <h3 className="text-lg font-bold text-purple-400 flex items-center gap-2">
-                    ✨ AI Viết JD Trợ Giúp
-                </h3>
-                <p className="text-xs text-gray-400 mt-1">
-                    Nhập thông tin cơ bản bên trái (Vị trí, Kinh nghiệm, Kỹ năng), sau đó bấm nút dưới đây để AI viết bài PR chuyên nghiệp.
-                </p>
-            </div>
-
-            {/* Nút Generate */}
-            <button 
-                type="button"
-                onClick={handleGenerateJD}
-                disabled={isGenerating}
-                className="w-full mb-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold rounded-lg shadow-lg transition-all flex justify-center items-center gap-2"
-            >
-                {isGenerating ? (
-                    <>Creating Magic... <span className="animate-spin">⏳</span></>
-                ) : (
-                    <>⚡ Tạo JD Chuyên Nghiệp</>
-                )}
-            </button>
-
-            {/* Khu vực hiển thị kết quả AI */}
-            <div className="flex-1 bg-slate-950 border border-gray-700 rounded-lg p-3 overflow-hidden flex flex-col">
-                <label className="text-xs text-gray-500 font-semibold mb-2 uppercase tracking-wide">Bản nháp từ AI:</label>
-                
-                {aiResult ? (
-                    <textarea 
-                        className="flex-1 w-full bg-transparent text-gray-300 text-sm resize-none focus:outline-none custom-scrollbar"
-                        value={aiResult}
-                        onChange={(e) => setAiResult(e.target.value)} // Cho phép sửa nháp
-                    />
-                ) : (
-                    <div className="flex-1 flex items-center justify-center text-gray-600 text-sm italic">
-                        Kết quả sẽ hiện ở đây...
-                    </div>
-                )}
-            </div>
-
-            {/* Nút hành động sau khi có kết quả */}
-            {aiResult && (
+            {/* Footer Actions */}
+            <div className="flex justify-end gap-3 border-t border-gray-700 pt-6 mt-6">
                 <button 
-                    type="button"
-                    onClick={handleUseAIContent}
-                    className="mt-4 w-full py-2 border border-green-500 text-green-400 hover:bg-green-500/10 rounded-lg font-semibold transition-colors flex justify-center items-center gap-2"
+                    type="button" 
+                    onClick={onCancel}
+                    className="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
                 >
-                    ✅ Copy vào Form Chính
+                    Hủy bỏ
                 </button>
-            )}
-        </div>
-      </div>
-
-      {/* Footer Actions (Toàn cục) */}
-      <div className="flex justify-end gap-3 border-t border-gray-700 pt-6 mt-6">
-            <button 
-                type="button" 
-                onClick={onCancel}
-                className="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
-            >
-                Hủy bỏ
-            </button>
-            <button 
-                onClick={handleSubmit} // Trigger submit form bên trái
-                disabled={isPosting}
-                className="px-8 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold shadow-lg flex items-center gap-2 transition-transform hover:scale-105"
-            >
-                {isPosting ? "Đang xử lý..." : "Đăng Tin Ngay 🚀"}
-            </button>
-      </div>
+                <button 
+                    type="submit" // Trigger submit form
+                    disabled={isPosting}
+                    className="px-8 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold shadow-lg flex items-center gap-2 transition-transform hover:scale-105"
+                >
+                    {isPosting ? "Đang xử lý..." : "Đăng Tin Ngay 🚀"}
+                </button>
+            </div>
+      </form>
     </div>
   );
 };

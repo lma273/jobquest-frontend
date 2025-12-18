@@ -1,27 +1,26 @@
-// src/components/JobsList.jsx
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import InlineJobApplication from "./InlineJobApplication"; // Form ứng tuyển cho Candidate
-import InlinePostJob from "./InlinePostJob"; // Form đăng bài cho Recruiter (Có AI)
+import InlinePostJob from "./InlinePostJob"; // Form đăng bài cho Recruiter (1 cột)
 
 const JobsList = ({
   jobs = [],
-  onApplySubmit, // Hàm xử lý khi ứng viên submit form (gọi API nộp đơn)
-  onDelete,      // Hàm xóa job (dành cho recruiter)
-  setSelectedJob, 
-  activeJobId,   // ID của job đang được chọn xem bên AI Copilot
-  // Props quản lý form ứng tuyển
-  applyingJobId, 
-  setApplyingJobId 
+  onApplySubmit,
+  onDelete,
+  setSelectedJob,
+  activeJobId,
+  // Props quản lý form ứng tuyển (Candidate)
+  applyingJobId,
+  setApplyingJobId,
+  // Props quản lý form đăng bài (Recruiter) - Nhận từ cha để đồng bộ với Sidebar AI
+  isPostingJob, 
+  setIsPostingJob 
 }) => {
   const navigate = useNavigate();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const isRecruiter = useSelector((state) => state.auth.isRecruiter);
-  
-  // State quản lý việc mở form đăng tuyển dụng (Inline)
-  const [isPostingJob, setIsPostingJob] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) navigate("/");
@@ -29,19 +28,19 @@ const JobsList = ({
 
   // --- XỬ LÝ ỨNG VIÊN (CANDIDATE) ---
   const handleApplyClick = (e, job) => {
-    e.stopPropagation(); // Không trigger việc chọn job cho AI Copilot
-    
-    // Toggle: Nếu đang mở đúng job này thì đóng, ngược lại thì mở
+    e.stopPropagation(); 
     if (applyingJobId === (job.id || job._id)) {
       setApplyingJobId(null);
     } else {
       setApplyingJobId(job.id || job._id);
-      setSelectedJob(job); // Tự động chọn job này để AI có context tư vấn luôn
+      setSelectedJob(job); 
     }
   };
 
   // --- XỬ LÝ CHUNG ---
   const handleCardClick = (job) => {
+    // Nếu đang đăng bài thì không cho chọn job khác để tránh mất dữ liệu form
+    if (isPostingJob) return; 
     setSelectedJob(job);
   };
 
@@ -55,19 +54,22 @@ const JobsList = ({
           {!isPostingJob ? (
             // 1. Nút mở form đăng bài
             <button
-              onClick={() => setIsPostingJob(true)}
+              onClick={() => {
+                setIsPostingJob(true);
+                setSelectedJob(null); // Reset job đang chọn để Sidebar chuyển sang chế độ viết JD
+              }}
               className="py-2 px-6 bg-green-600 hover:bg-green-700 rounded-lg text-white font-bold transition-all shadow-md flex items-center gap-2"
             >
               <span className="text-xl">+</span> Post New Job
             </button>
           ) : (
-            // 2. Form đăng bài Inline (Có tích hợp AI viết JD)
+            // 2. Form đăng bài Inline (1 cột)
             <InlinePostJob 
                 onCancel={() => setIsPostingJob(false)}
                 onSuccess={() => {
                     setIsPostingJob(false);
-                    // Ở đây bạn có thể gọi hàm reload lại danh sách job nếu cần
-                    // ví dụ: window.location.reload(); hoặc gọi prop onRefresh()
+                    // Reload trang hoặc gọi hàm refresh API tùy logic của bạn
+                    window.location.reload(); 
                 }}
             />
           )}
@@ -79,8 +81,8 @@ const JobsList = ({
         {jobs.length > 0 ? (
           jobs.map((job) => {
             const jobId = job.id || job._id;
-            const isActive = jobId === activeJobId;      // Job đang được xem bởi AI Copilot
-            const isApplying = jobId === applyingJobId;  // Job đang mở form nộp đơn
+            const isActive = jobId === activeJobId;      
+            const isApplying = jobId === applyingJobId;  
 
             return (
               <div key={jobId}>
@@ -89,6 +91,7 @@ const JobsList = ({
                   onClick={() => handleCardClick(job)}
                   className={`
                     p-5 flex justify-between items-start gap-4 border rounded-xl cursor-pointer transition-all duration-300
+                    ${isPostingJob ? "opacity-50 cursor-not-allowed" : ""} 
                     ${isActive 
                       ? "border-green-500 bg-gray-800 shadow-[0_0_15px_rgba(34,197,94,0.2)]" 
                       : "border-gray-700 bg-gray-900 hover:border-green-500/50 hover:bg-gray-800"
@@ -102,7 +105,6 @@ const JobsList = ({
                     <p className="opacity-80 text-sm mb-3">
                       {job.company} • {job.location}
                     </p>
-                    {/* Skills Tags */}
                     <div className="flex flex-wrap gap-2 mb-2">
                        {(job.skills || []).slice(0, 3).map((s, i) => (
                           <span key={i} className="px-2 py-1 bg-gray-700 rounded text-xs text-gray-300 border border-gray-600">{s}</span>
@@ -114,21 +116,19 @@ const JobsList = ({
                   </div>
 
                   <div className="flex flex-col items-end gap-2">
-                    {/* Nút Apply (Chỉ hiện cho Candidate) */}
                     {!isRecruiter && (
                       <button
                         onClick={(e) => handleApplyClick(e, job)}
                         className={`px-6 py-2 rounded-lg text-white text-sm font-semibold transition-all shadow-md ${
                            isApplying 
-                           ? "bg-gray-600 hover:bg-gray-500" // Màu xám khi đang mở form (nút Close)
-                           : "bg-green-600 hover:bg-green-700" // Màu xanh khi chưa mở (nút Apply)
+                           ? "bg-gray-600 hover:bg-gray-500" 
+                           : "bg-green-600 hover:bg-green-700"
                         }`}
                       >
                         {isApplying ? "Close" : "Apply"} 
                       </button>
                     )}
 
-                    {/* Nút Delete (Chỉ hiện cho Recruiter) */}
                     {isRecruiter && onDelete && (
                         <button
                             onClick={(e) => {
@@ -143,7 +143,7 @@ const JobsList = ({
                   </div>
                 </div>
 
-                {/* 2. FORM ỨNG TUYỂN INLINE (HIỆN KHI BẤM APPLY) */}
+                {/* 2. FORM ỨNG TUYỂN INLINE */}
                 {isApplying && !isRecruiter && (
                   <div className="pl-4 border-l-2 border-green-600 ml-4 mb-4 animate-fade-in-down"> 
                      <InlineJobApplication 
@@ -168,12 +168,15 @@ const JobsList = ({
 
 JobsList.propTypes = {
   jobs: PropTypes.arrayOf(PropTypes.object),
-  onApplySubmit: PropTypes.func, // Hàm xử lý submit form ứng tuyển
-  onDelete: PropTypes.func,      // Hàm xử lý xóa job
+  onApplySubmit: PropTypes.func,
+  onDelete: PropTypes.func,
   setSelectedJob: PropTypes.func,
   activeJobId: PropTypes.string,
   applyingJobId: PropTypes.string,
   setApplyingJobId: PropTypes.func,
+  // Props mới cần thiết để đồng bộ với Sidebar
+  isPostingJob: PropTypes.bool,
+  setIsPostingJob: PropTypes.func,
 };
 
 export default JobsList;
