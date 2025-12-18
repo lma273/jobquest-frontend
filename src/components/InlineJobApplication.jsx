@@ -52,6 +52,7 @@ const InlineJobApplication = ({ job, onSubmit, onCancel }) => {
       ...prev,
       name: userData?.name || "",
       email: userData?.email || "",
+      // Map skills từ mảng string sang object {value, label} cho react-select
       skills: userData?.skills?.map((item) => ({ value: item, label: item })) || [],
     }));
   }, [userData]);
@@ -79,23 +80,31 @@ const InlineJobApplication = ({ job, onSubmit, onCancel }) => {
     formData.append("qualification", applicationForm.qualification?.value || "");
     formData.append("status", "Pending");
 
-    // Append Skills (Lưu ý: tùy backend mà cách gửi mảng có thể khác nhau)
-    // Cách 1: Gửi lặp lại key 'skills' (Phổ biến)
-    applicationForm.skills.forEach(skill => {
-        formData.append("skills", skill.value);
-    });
-    // Cách 2: Nếu backend cần JSON string thì dùng dòng dưới:
-    // formData.append("skills", JSON.stringify(applicationForm.skills.map(s => s.value)));
+    // Append Skills (Backend Java thường nhận List<String> từ nhiều param cùng tên 'skills')
+    if (applicationForm.skills && applicationForm.skills.length > 0) {
+        applicationForm.skills.forEach(skill => {
+            formData.append("skills", skill.value);
+        });
+    }
 
     // Append File
     if (resumeFile) {
       formData.append("resume", resumeFile);
+    } else {
+      alert("Vui lòng chọn file CV!");
+      setIsLoading(false);
+      return;
     }
 
     // Gọi hàm submit từ parent (JobListings)
     // Axios sẽ tự động nhận diện FormData và set header 'multipart/form-data'
-    await onSubmit(formData);
-    setIsLoading(false);
+    try {
+        await onSubmit(formData);
+    } catch (error) {
+        console.error("Lỗi khi submit form:", error);
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   return (
