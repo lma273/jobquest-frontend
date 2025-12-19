@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { useSelector } from "react-redux";
 
-const AICopilot = ({ selectedJob, isPostingJob }) => {
+const AICopilot = ({ selectedJob, isPostingJob, jobFormData }) => {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState(""); 
   const [isLoading, setIsLoading] = useState(false);
@@ -95,11 +95,15 @@ const AICopilot = ({ selectedJob, isPostingJob }) => {
     setGeneratedJD(""); 
 
     try {
-        // Gọi API Viết JD
+        // Gọi API Viết JD với context từ form
         const response = await fetch("https://lakeisha-unhumorous-histographically.ngrok-free.dev/generate_jd", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ rough_input: jdInput })
+            body: JSON.stringify({ 
+                rough_input: jdInput,
+                job_title: jobFormData?.title || null,
+                experience: jobFormData?.experience || null
+            })
         });
         const data = await response.json();
         setGeneratedJD(data.jd_content);
@@ -280,6 +284,7 @@ const AICopilot = ({ selectedJob, isPostingJob }) => {
 AICopilot.propTypes = {
   selectedJob: PropTypes.object,
   isPostingJob: PropTypes.bool,
+  jobFormData: PropTypes.object,
 };
 
 export default AICopilot;

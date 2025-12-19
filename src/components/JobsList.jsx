@@ -18,6 +18,7 @@ const JobsList = ({
   isPostingJob, 
   setIsPostingJob,
   refetchJobs,
+  setJobFormData,
   // Props tìm kiếm
   searchQuery,
   setSearchQuery
@@ -102,6 +103,7 @@ const JobsList = ({
                     // Gọi refetch jobs để cập nhật danh sách
                     if (refetchJobs) await refetchJobs();
                 }}
+                setJobFormData={setJobFormData}
             />
           )}
         </div>

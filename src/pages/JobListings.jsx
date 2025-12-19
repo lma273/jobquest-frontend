@@ -34,6 +34,9 @@ const JobListings = () => {
   
   // 🔍 STATE TÌM KIẾM
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // 📝 STATE LƯU THÔNG TIN FORM ĐỂ TRUYỀN CHO CHATBOT
+  const [jobFormData, setJobFormData] = useState({ title: "", experience: "" });
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -186,6 +189,7 @@ const JobListings = () => {
               isPostingJob={isPostingJob}       
               setIsPostingJob={setIsPostingJob}
               refetchJobs={refetchJobs}
+              setJobFormData={setJobFormData}
             />
           </div>
 
@@ -196,7 +200,8 @@ const JobListings = () => {
                 {/* AI Copilot tự động xử lý cả Recruiter và Candidate */}
                 <AICopilot 
                   selectedJob={selectedJob} 
-                  isPostingJob={isPostingJob} 
+                  isPostingJob={isPostingJob}
+                  jobFormData={jobFormData}
                 />
 
              </div>
