@@ -170,6 +170,19 @@ const AICopilot = ({ selectedJob, isPostingJob }) => {
 
   // ⚪ CASE 2: CHƯA CHỌN JOB (Khi không phải đang post job)
   if (!selectedJob) {
+    // Nếu là Recruiter thì hiển thị placeholder khác
+    if (isRecruiter) {
+      return (
+        <div className="h-full flex flex-col items-center justify-center text-gray-400 bg-gray-900 border-l border-gray-700 p-6 shadow-xl">
+          <h3 className="text-xl font-bold text-white mb-2">Recruiter Dashboard</h3>
+          <p className="text-center text-sm opacity-70 max-w-xs">
+            Click <span className="text-green-400 font-bold">"Post New Job"</span> to create a new listing with AI assistance.
+          </p>
+        </div>
+      );
+    }
+    
+    // Candidate thì hiển thị welcome screen
     return (
       <div className="h-full flex flex-col items-center justify-center text-gray-400 bg-gray-900 border-l border-gray-700 p-6 shadow-xl">
         <div className="text-5xl mb-4 opacity-50">🤖</div>
