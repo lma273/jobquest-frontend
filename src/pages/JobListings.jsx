@@ -35,6 +35,12 @@ const JobListings = () => {
 
   // 🟢 QUAN TRỌNG: STATE QUẢN LÝ VIỆC ĐĂNG BÀI
   const [isPostingJob, setIsPostingJob] = useState(false);
+  
+  // 🔍 STATE TÌM KIẾM
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // 🔍 STATE TÌM KIẾM
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -74,6 +80,18 @@ const JobListings = () => {
 
     fetchJobs();
   }, []);
+  
+  // Filter jobs dựa trên searchQuery
+  const filteredJobs = jobs.filter(job => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      job.position?.toLowerCase().includes(query) ||
+      job.company?.toLowerCase().includes(query) ||
+      job.location?.toLowerCase().includes(query) ||
+      job.skills?.some(skill => skill.toLowerCase().includes(query))
+    );
+  });
 
   const closeConfirmationModal = () => {
     setIsConfirmationModalOpen(false);
@@ -164,8 +182,10 @@ const JobListings = () => {
           <div className="flex-1 h-full overflow-y-auto pr-2 custom-scrollbar">
             <JobsList
               actionLoading={actionLoading}
-              jobs={jobs}
+              jobs={filteredJobs}
               jobScores={jobScores}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
               onDelete={deleteJob}
               
               // 🟢 3. Chặn sự kiện chọn Job nếu là Recruiter

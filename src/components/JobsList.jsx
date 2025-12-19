@@ -17,7 +17,10 @@ const JobsList = ({
   setApplyingJobId,
   // Props quản lý form đăng bài (Recruiter) - Nhận từ cha để đồng bộ với Sidebar AI
   isPostingJob, 
-  setIsPostingJob 
+  setIsPostingJob,
+  // Props tìm kiếm
+  searchQuery,
+  setSearchQuery
 }) => {
   const navigate = useNavigate();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -50,7 +53,33 @@ const JobsList = ({
     <div className="text-white">
       <h1 className="text-2xl font-bold mb-4">Available Jobs</h1>
       
-      {/* --- KHU VỰC CỦA NHÀ TUYỂN DỤNG (RECRUITER) --- */}
+      {/* --- TÌM KIẾM (CHO TẤT CẢ USER) --- */}
+      <div className="mb-6">
+        <div className="relative">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="🔍 Tìm theo vị trí, công ty, địa điểm, kỹ năng..."
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-green-500 transition-all"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+        {searchQuery && (
+          <p className="text-xs text-gray-400 mt-2">
+            Tìm thấy <span className="text-green-400 font-bold">{jobs.length}</span> công việc
+          </p>
+        )}
+      </div>
+      
+      {/* --- KHU VỰC CỦA NHÀ TUYỂN DỤNG (RECRUITER) --- */
       {isRecruiter && (
         <div className="my-6">
           {!isPostingJob ? (
