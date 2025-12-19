@@ -38,9 +38,6 @@ const JobListings = () => {
   
   // 🔍 STATE TÌM KIẾM
   const [searchQuery, setSearchQuery] = useState("");
-  
-  // 🔍 STATE TÌM KIẾM
-  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchJobs = async () => {

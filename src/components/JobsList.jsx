@@ -79,7 +79,7 @@ const JobsList = ({
         )}
       </div>
       
-      {/* --- KHU VỰC CỦA NHÀ TUYỂN DỤNG (RECRUITER) --- */
+      /* --- KHU VỰC CỦA NHÀ TUYỂN DỤNG (RECRUITER) --- */
       {isRecruiter && (
         <div className="my-6">
           {!isPostingJob ? (
