@@ -150,21 +150,6 @@ const JobListings = () => {
     }
   };
 
-  // 🟢 2. Component hiển thị Placeholder cho Recruiter
-  const RecruiterPlaceholder = () => (
-    <div className="h-full flex flex-col items-center justify-center p-8 text-center text-gray-400 bg-gray-800">
-      {/* Bạn có thể thay icon ở đây bằng ảnh robot đang ngủ hoặc biểu tượng dashboard */}
-      <div className="text-6xl mb-6 opacity-30">🛡️</div> 
-      <h3 className="text-2xl font-bold text-white mb-2">Recruiter Dashboard</h3>
-      <p className="max-w-xs mx-auto mb-6">
-        Select <span className="text-green-400 font-bold">"Post New Job"</span> on the left to create a new listing.
-      </p>
-      <div className="text-sm italic opacity-50">
-        (Chat assistant is only available for candidates)
-      </div>
-    </div>
-  );
-
   return (
     <div className="pt-24 px-4 lg:px-6 h-screen overflow-hidden flex flex-col bg-gray-900">
       
@@ -202,19 +187,15 @@ const JobListings = () => {
             />
           </div>
 
-          {/* --- CỘT PHẢI: AI COPILOT HOẶC STATIC PANEL --- */}
+          {/* --- CỘT PHẢI: AI COPILOT --- */}
           <div className="hidden lg:block w-[400px] xl:w-[450px] h-full transition-all duration-500 ease-in-out">
              <div className="h-full rounded-2xl overflow-hidden border border-gray-700 shadow-2xl bg-gray-800">
                 
-                {/* 🟢 4. Điều kiện hiển thị: Nếu là Recruiter thì hiện Placeholder, ngược lại hiện AICopilot */}
-                {isRecruiter ? (
-                  <RecruiterPlaceholder />
-                ) : (
-                  <AICopilot 
-                    selectedJob={selectedJob} 
-                    isPostingJob={isPostingJob} 
-                  />
-                )}
+                {/* AI Copilot tự động xử lý cả Recruiter và Candidate */}
+                <AICopilot 
+                  selectedJob={selectedJob} 
+                  isPostingJob={isPostingJob} 
+                />
 
              </div>
           </div>
