@@ -92,13 +92,16 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
                 // 5. Update Redux store
                 dispatch(addJobIdToRecruiter({ jobId: jobResponse.data.id }));
                 alert("✅ Đăng tin tuyển dụng thành công!");
-                onSuccess(); // Reload list job
+                
+                // 6. Gọi onSuccess để đóng form và refresh danh sách
+                if (onSuccess) onSuccess();
             }
         }
 
     } catch (error) {
         console.error("Lỗi đăng tin:", error);
-        alert("❌ Có lỗi xảy ra khi đăng tin. Vui lòng thử lại!");
+        const errorMsg = error.response?.data?.message || "Có lỗi xảy ra khi đăng tin";
+        alert(`❌ ${errorMsg}. Vui lòng thử lại!`);
     } finally {
         setIsPosting(false);
     }

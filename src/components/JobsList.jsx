@@ -17,6 +17,7 @@ const JobsList = ({
   // Props quản lý form đăng bài (Recruiter) - Nhận từ cha để đồng bộ với Sidebar AI
   isPostingJob, 
   setIsPostingJob,
+  refetchJobs,
   // Props tìm kiếm
   searchQuery,
   setSearchQuery
@@ -96,10 +97,10 @@ const JobsList = ({
             // 2. Form đăng bài Inline (1 cột)
             <InlinePostJob 
                 onCancel={() => setIsPostingJob(false)}
-                onSuccess={() => {
+                onSuccess={async () => {
                     setIsPostingJob(false);
-                    // Reload trang hoặc gọi hàm refresh API tùy logic của bạn
-                    window.location.reload(); 
+                    // Gọi refetch jobs để cập nhật danh sách
+                    if (refetchJobs) await refetchJobs();
                 }}
             />
           )}

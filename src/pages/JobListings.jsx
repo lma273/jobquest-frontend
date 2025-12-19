@@ -53,6 +53,16 @@ const JobListings = () => {
     fetchJobs();
   }, []);
   
+  // Hàm refetch jobs (dùng khi post job thành công)
+  const refetchJobs = async () => {
+    try {
+      const jobsResponse = await api.get("/jobs");
+      setJobs(jobsResponse.data);
+    } catch (error) {
+      console.error("Error refetching jobs:", error);
+    }
+  };
+  
   // Filter jobs dựa trên searchQuery
   const filteredJobs = jobs.filter(job => {
     if (!searchQuery.trim()) return true;
@@ -174,7 +184,8 @@ const JobListings = () => {
 
               // Props cho Post Job
               isPostingJob={isPostingJob}       
-              setIsPostingJob={setIsPostingJob} 
+              setIsPostingJob={setIsPostingJob}
+              refetchJobs={refetchJobs}
             />
           </div>
 
