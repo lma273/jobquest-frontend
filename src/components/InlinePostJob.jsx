@@ -25,7 +25,7 @@ const customSelectStyles = {
   multiValueLabel: (base) => ({ ...base, color: "white" }),
 };
 
-const InlinePostJob = ({ onCancel, onSuccess }) => {
+const InlinePostJob = ({ onCancel, onSuccess, setJobFormData }) => {
   const dispatch = useDispatch(); // 🔥 THÊM
   const userData = useSelector((state) => state.auth.userData);
   
@@ -41,6 +41,16 @@ const InlinePostJob = ({ onCancel, onSuccess }) => {
   });
 
   const [isPosting, setIsPosting] = useState(false);
+  
+  // 🔥 Sync form data lên parent để chatbot biết
+  useEffect(() => {
+    if (setJobFormData) {
+      setJobFormData({
+        title: formData.title,
+        experience: formData.experience
+      });
+    }
+  }, [formData.title, formData.experience, setJobFormData]);
 
   // 🟢 AUTO-FILL: Lấy thông tin Recruiter điền sẵn vào form
   useEffect(() => {
