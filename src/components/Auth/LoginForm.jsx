@@ -49,6 +49,9 @@ const LoginForm = ({ userType }) => {
       const response = await api.post(apiEndpoint, loginObject);
 
       if (response.status === 200) {
+        console.log("🔍 Login response:", response.data);
+        console.log("🔍 isRecruiter:", isRecruiter);
+        
         dispatch(
             storeLogin({
               isRecruiter,

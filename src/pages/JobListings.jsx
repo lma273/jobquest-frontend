@@ -8,7 +8,11 @@ import Confirmation from "../components/modals/Confirmation";
 
 const JobListings = () => {
   const userData = useSelector((state) => state.auth.userData);
-  const isRecruiter = useSelector((state) => state.auth.isRecruiter); // ✅ Lấy từ Redux store 
+  const isRecruiter = useSelector((state) => state.auth.isRecruiter); // ✅ Lấy từ Redux store
+  
+  // 🔍 DEBUG: Kiểm tra giá trị
+  console.log("🔍 JobListings - isRecruiter:", isRecruiter);
+  console.log("🔍 JobListings - userData:", userData); 
 
   const [isLoading, setIsLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
