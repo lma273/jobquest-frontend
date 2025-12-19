@@ -8,10 +8,7 @@ import Confirmation from "../components/modals/Confirmation";
 
 const JobListings = () => {
   const userData = useSelector((state) => state.auth.userData);
-
-  // 🟢 1. Xác định Role (Giả sử trong userData có roles chứa 'RECRUITER')
-  // Bạn hãy kiểm tra lại cấu trúc Redux store của bạn xem role lưu ở đâu nhé (ví dụ: userData.roles hoặc userData.role)
-  const isRecruiter = userData?.roles?.includes("RECRUITER"); 
+  const isRecruiter = useSelector((state) => state.auth.isRecruiter); // ✅ Lấy từ Redux store 
 
   const [isLoading, setIsLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
